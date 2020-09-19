@@ -1,80 +1,26 @@
 {% extends 'lab/base.html' %}
 
 {% block body %}
-    <div class="example p-0 no-overflow" style="height: 400px;">
-        <aside class="sidebar pos-absolute z-2 on-left sidebar-shadow" data-role="sidebar" data-toggle="#sidebar-toggle"
-               id="sb1" data-role-sidebar="true">
-            <div class="sidebar-header">
-{#            <div class="sidebar-header" data-image="images/sb-bg-1.jpg"#}
-{#                 style="background-image: url(&quot;images/sb-bg-1.jpg&quot;);">#}
-                <a href="/" class="fg-white sub-action" onclick="Metro.sidebar.close('#sb1'); return false;"><span
-                        class="mif-arrow-left mif-2x"></span></a>
-                <div class="avatar">
-                    <img data-role="gravatar" data-email="sergey@pimenov.com.ua" data-role-gravatar="true"
-                         src="//www.gravatar.com/avatar/75d0f7104baad47ed0e96649b905d9bf?size=80&amp;d=mp">
-                </div>
-                <span class="title fg-white">Metro 4 Components Library</span>
-                <span class="subtitle fg-white"> 2018 © Sergey Pimenov</span>
+    <aside class="sidebar pos-absolute z-2" data-role="sidebar" data-toggle="#sidebar-toggle-2" data-shift=".shifted-content">
+        <div class="sidebar-header" data-image="images/sb-bg-1.jpg">
+            <div class="avatar">
+                <img data-role="gravatar" data-email="sergey@pimenov.com.ua">
             </div>
-            <ul class="sidebar-menu hide-scroll">
-                <li><a><span class="mif-home icon"></span>Home</a></li>
-                <li><a><span class="mif-books icon"></span>Guide</a></li>
-                <li><a><span class="mif-files-empty icon"></span>Examples</a></li>
-                <li class="divider"></li>
-                <li><a><span class="mif-images icon"></span>Icons</a></li>
-            </ul>
-        </aside>
-        <div class="aaa h-100 p-ab">
-            <div class="app-bar pos-absolute bg-red z-1" data-role="appbar" id="app-bar-1" data-role-appbar="true">
-                <button type="button" class="hamburger menu-down hidden" style="display: none;"><span
-                        class="line"></span><span class="line"></span><span class="line"></span></button>
-                <button class="app-bar-item c-pointer" id="sidebar-toggle"><span class="mif-menu fg-white">asdasd</span>
-                </button>
-            </div>
-
-            <div class="h-100 p-4">
-                <p class="h1">What is Lorem Ipsum?</p>
-                <p>
-                    Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-                    Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
-                    when an unknown printer took a galley of type and scrambled it to make a type specimen book.
-                    It has survived not only five centuries, but also the leap into electronic typesetting, remaining
-                    essentially unchanged.
-                    It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages,
-                    and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem
-                    Ipsum.
-                </p>
-            </div>
+            <span class="title fg-white">Metro 4 Components Library</span>
+            <span class="subtitle fg-white"> 2018 © Sergey Pimenov</span>
         </div>
+        <ul class="sidebar-menu">
+            <li><a><span class="mif-home icon"></span>Home</a></li>
+            <li><a><span class="mif-books icon"></span>Guide</a></li>
+            <li><a><span class="mif-files-empty icon"></span>Examples</a></li>
+            <li class="divider"></li>
+            <li><a><span class="mif-images icon"></span>Icons</a></li>
+        </ul>
+    </aside>
+    <div class="h-100 p-ab shifted-content">
+        <button class="button square pos-absolute pos-top-left"
+                id="sidebar-toggle-2">
+            <span class="mif-menu"></span>
+        </button>
     </div>
-    The world of machine learning and neural networks is quickly expanding field in computer science. We will create a website that dynamically generates basic neural network code to educated beginners on the basics of 
-    {#    <div>#}
-    {#        <div class="app-bar pos-absolute bg-red z-1" data-role="appbar" id="app-bar-1" data-role-appbar="true">#}
-    {#            <button type="button" class="hamburger menu-down hidden" style="display: none;"><span#}
-    {#                    class="line"></span><span class="line"></span><span class="line"></span></button>#}
-    {#            <button class="app-bar-item c-pointer" id="sidebar-toggle"><span class="mif-menu fg-white"></span></button>#}
-    {#        </div>#}
-    {#    </div>#}
-    {#    <div>#}
-    {#        <aside class="sidebar" data-role="sidebar">#}
-    {#            <div class="sidebar-header" style="background-color: #fe6b40">#}
-    {#                <a href="/" class="fg-white sub-action"#}
-    {#                   onclick="Metro.sidebar.close('#sb1'); return false;">#}
-    {#                    <span class="mif-arrow-left mif-2x"></span>#}
-    {#                </a>#}
-    {#                <div class="avatar">#}
-    {#                    <img data-role="gravatar" data-email="sergey@pimenov.com.ua">#}
-    {#                </div>#}
-    {#                <span class="title">Metro 4 Components Library</span>#}
-    {#                <span class="subtitle"> 2018 © Sergey Pimenov</span>#}
-    {#            </div>#}
-    {#            <ul class="sidebar-menu" style="background-color: #ffb366">#}
-    {#                <li><a><span class="mif-home icon"></span>Home</a></li>#}
-    {#                <li><a><span class="mif-books icon"></span>Guide</a></li>#}
-    {#                <li><a><span class="mif-files-empty icon"></span>Examples</a></li>#}
-    {#                <li class="divider"></li>#}
-    {#                <li><a><span class="mif-images icon"></span>Icons</a></li>#}
-    {#            </ul>#}
-    {#        </aside>#}
-    {#    </div>#}
 {% endblock %}
