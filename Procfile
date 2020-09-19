@@ -1,0 +1,1 @@
+web: gunicorn MINN_Lab.wsgi
