@@ -192,10 +192,10 @@ class NeuralNetwork:
         self.output_vec = []
 
     def feedforward_layer(self, layer, x_vec):  # layer = layers(i)
-        output = []
+        output = np.array([])
         for node in layer.nodes:
             node_output = node.feedforward(x_vec)
-            output.append(node_output)
+            output = np.append(output, node_output)
         return output
 
     def feedforward_network(self, input_vec):
@@ -206,15 +206,28 @@ class NeuralNetwork:
         self.output_vec = output_vec
 
 
-    def update_node(self, node):
-        node.weights -= self.d_l_dy_pred * node.node_partials * node.weight_partials
+    def update_node_weights(self, node, node_number, layer_number):
+        #node.weights -= self.d_l_dy_pred * node.node_partials * node.weight_partials
+        inputs = node.input_vec
+        #FIXME
+        if layer_number == len(self.layers) - 1:
+            derivatives = np.array([])
+            for input in inputs:
+                deriv = sigmoid_prime(input)
+                derivatives = np.append(derivatives, deriv)
+                #while len(error_temp) != self.layers[-1].num_nodes:
+                    #pass
+            delta_w = self.error[node_number] * inputs * derivatives
+            node.weights += delta_w
+        else:
+            pass
 
 
     def backprop_node(self, node, deriv):
         # FIXME
         # pred = node.sigmoid_val
         node.bias_partial = deriv
-        node.weight_partials = node.input_vec * deriv
+        node.weight_partials = np.array(node.input_vec) * deriv
         node.node_partials = node.get_weights() * deriv
         return
 
@@ -228,16 +241,17 @@ class NeuralNetwork:
 
     # where all the weights get updated
     def backprop_network(self, data, true, learn_rate, cycles):
-        self.d_l_dy_pred = -2 * (true - self.output_vec) # size 3
-        self.learning_multiplier = learn_rate * self.d_l_dy_pred
-        for layerIdx in range(len(self.layers) - 1, 0, -1):
-            current_layer = self.layers[layerIdx]
-            self.backprop_layer(current_layer)
-            for nodeIdx in range(0, current_layer.get_num_nodes()): # output: loops 012 # next in: loops 0123
-                self.update_node(current_layer.nodes[nodeIdx], self.d_l_dy_pred[]) # this works only for output layer
-
-
-
+        #self.d_l_dy_pred = -2 * (true - self.output_vec) # size 3
+        for i in range(0, cycles):
+            self.feedforward_network(data)
+            self.error = true - self.output_vec
+            print(self.error)
+            #self.learning_multiplier = learn_rate * self.d_l_dy_pred
+            for layerIdx in range(len(self.layers) - 1, 0, -1):
+                current_layer = self.layers[layerIdx]
+                self.backprop_layer(current_layer)
+                for nodeIdx in range(0, current_layer.get_num_nodes()): # output: loops 012 # next in: loops 0123
+                    self.update_node_weights(current_layer.nodes[nodeIdx], nodeIdx, layerIdx) # this works only for output layer
 
 
 
@@ -261,10 +275,16 @@ def network(inputs, outputs, nodes_per_layer, activation):
     layers = create_layers(inputs, outputs, nodes_per_layer)
     create_nodes(layers, activation)
     network = NeuralNetwork(layers)
-    network.feedforward_network(np.array([-3, -3, 4]))
-    print(network.get_output())
+    network.feedforward_network(np.array([-3.0, -3.0]))
+    data = np.array([1, 2])
+    true = np.array([.7])
+    learn_rate = 0.1
+    cycles = 10
+    network.backprop_network(data, true, learn_rate, cycles)
+    print(network.output_vec)
 
 
-network(inputs=3, outputs=1, nodes_per_layer=(3, 2, 4), activation="sigmoid")
+#network(inputs=3, outputs=1, nodes_per_layer=(2,), activation="sigmoid")
+network(inputs=2, outputs=2, nodes_per_layer=(2,3), activation="sigmoid")
 
 
