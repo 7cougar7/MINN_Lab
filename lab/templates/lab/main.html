@@ -3,18 +3,33 @@
 
 {% block header %}
     <script>
-        function setLayerForms() {
-            return 0
+        function getFunctionType() {
+            let funcVal = $('#activationSelect').val();
+            $.post({
+                    url: '{% url 'lab:post_func_type' %}',
+                    data: {
+                        funcVal: funcVal,
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    },
+                    success: function (data) {
+                        $("#activation-function").text(data.functionCode)
+                    }
+                }
+            )
         }
 
         $(document).ready(function () {
             let numLayersInput = $('#numLayers');
+            getFunctionType()
             numLayersInput.on("change keyup paste", function () {
                 let numLayers = parseInt($(this).val());
                 if (!Number.isInteger(numLayers)) {
                     numLayers = 0;
                 }
                 $('#nodesPerLayer').html('<p>You have typed: ' + numLayers + '</p>');
+            })
+            $('#activationSelect').change(function () {
+                getFunctionType()
             })
         })
     </script>
@@ -29,12 +44,14 @@
         </div>
         <ul class="sidebar-menu">
             <li class="pl-2 pr-7 py-2">
-                <select name="activationFunc">
+                <select name="activationFunc" id="activationSelect">
                     {% for func, val in activation_functions.items %}
                         <option value="{{ val }}">{{ func }}</option>
                     {% endfor %}
                 </select>
             </li>
+
+            <li class="pl-2 pr-7 py-2"><label for="numInput">Number of Inputs:</label></li>
             <li class="pl-2 pr-7 py-2"><input type="number" id="numInput" name="numInput" placeholder="Number of Inputs"
                                               min="1" max="5"></li>
             <li class="pl-2 pr-7 py-2"><input type="number" id="numOutputs" name="numOutputs"
@@ -50,5 +67,51 @@
         <button class="button square pos-top-left" id="sidebar-toggle-2">
             <span class="mif-menu"></span>
         </button>
+        <div>
+            <code>
+                <pre>
+<span id="activation-function"></span>
+class Layer:
+    def __init__(self, num_nodes):
+        self.num_nodes = num_nodes
+        self.nodes = []
+
+    def get_num_nodes(self):
+        return self.num_nodes
+
+    def get_nodes(self):
+        return self.nodes
+
+    def append_node(self, node):
+        self.nodes.append(node)
+
+
+class NeuralNetwork:
+    def __init__(self, layers):
+        self.layers = layers
+        self.output_vec = []
+
+    def feedforward_layer(self, layer, x_vec):  # layer = layers(i)
+        output = []
+        for node in layer.nodes:
+            node_output = node.feedforward(x_vec)
+            output.append(node_output)
+        return output
+
+    def feedforward_network(self, input_vec):
+        self.inputs = input_vec
+        output_vec = self.feedforward_layer(self.layers[1], input_vec)
+        for layerIdx in range(2, len(self.layers)):
+            output_vec = self.feedforward_layer(self.layers[layerIdx], output_vec)
+        self.output_vec = output_vec
+
+    def get_output(self):
+        return self.output_vec
+
+    def train(self):
+        return 0
+                </pre>
+            </code>
+        </div>
     </div>
 {% endblock %}

@@ -1,7 +1,15 @@
 from urllib.parse import urlencode
 
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
+import re
+
+INDENTION = '    '
+
+
+def format_string(string):
+    return re.sub(r'~', INDENTION, string)
 
 
 def home_page(request):
@@ -44,3 +52,20 @@ def backend_request_function(request):
         url = '{}?{}'.format(base_url, query_string)
         return redirect(url)
     return redirect(reverse('lab:backend_call'))
+
+
+def post_function_type(request):
+    functions = {
+        '0': 'def sigmoid(x):\n~return 1 / (1 + np.exp(-x))\n\ndef sigmoid_prime(x):\n~tfx = sigmoid(x)\n~return fx * (1 - fx)\n',
+        '1': 'def tanh(x):\n~return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))\ndef tanh_prime(x):\n~t = tanh(x)\n~return 1 - t ** 2\n',
+        '2': 'def relu(x):\n~return max(0, x)\n\ndef relu_prime(x):\n~return 1 if x > 0 else 0\n',
+        '3': 'def parametric_relu(x, alpha=0.01):\n\n~return max(alpha * x, x)\ndef parametric_relu_prime(x, alpha=0.01):\n~return 1 if x > 0 else alpha\n',
+        '4': 'def elu(x, alpha):\n~return x if x >= 0 else alpha * (np.exp(x) - 1)\n\ndef elu_prime(x, alpha):\n~return 1 if x > 0 else alpha * np.exp(x)\n',
+        '5': 'def swish(x):\n~return x / (1 + np.exp(-x))\n\ndef swish_prime(x):\n~sig = sigmoid(x)\n~swi = swish(x)\n~return swi + (sig * (1 - swi))\n',
+        '6': 'def linear(x, slope):\n~return x * slope\n\ndef linear_prime(slope):\n~return slope\n',
+        '7': 'def binary(x):\n~return 1 if x > 0 else 0\n\ndef binary_prime():\n~return 0\n'
+    }
+    response = {
+        'functionCode': format_string(functions.get(request.POST.get('funcVal', '0')))
+    }
+    return JsonResponse(response)
