@@ -138,13 +138,18 @@ mse_loss_s = "def mse_loss(y_true, y_pred):\n\treturn ((y_true - y_pred) ** 2).m
 class Neuron:
     def __init__(self, number_of_weights, activation="sigmoid"):
         self.number_of_weights = number_of_weights
-        self.input_val = 0
+        self.input_vec = 0
         self.activation_val = 0
         self.weights = np.random.rand(number_of_weights)
         self.biases = np.random.rand()
+        self.learn_rates = None
+        self.weight_partials = None
+        self.node_partials = None
+        self.bias_partial = None
 
     def feedforward(self, inputs):
         # Weight inputs, add bias, and use activation function
+        self.input_vec = inputs
         self.sum_val = np.dot(self.weights, inputs) + self.biases
         # FIXME self.activation_val = activation(self.sum_val)
         self.sigmoid_val = sigmoid(self.sum_val)
@@ -153,11 +158,16 @@ class Neuron:
     def get_weight(self, index):
         return self.weights[index]
 
+    def get_weights(self):
+        return self.weights
+
     def set_weight(self, index, value):
         self.weights[index] = value
 
+    # FIXME
     def calculate_deriv(self):
         return 0
+
 
 
 class Layer:
@@ -197,8 +207,34 @@ class NeuralNetwork:
     def get_output(self):
         return self.output_vec
 
-    def train(self):
-        return 0
+    def backprop_node(self, node, deriv):
+        # FIXME
+        # pred = node.sigmoid_val
+        node.bias_partial = deriv
+        node.weight_partials = node.input_vec * deriv
+        node.node_partials = node.get_weights() * deriv
+        node.learn_rates = self.learning_multiplier * node.get_node_partials()
+        return
+
+    def backprop_layer(self, layer):
+        for node in layer.get_nodes():
+            # FIXME
+            deriv = sigmoid_prime(node.sum_val)
+            self.backprop_node(node, deriv)
+        return
+
+    # where all the weights get updated
+    def backprop_network(self, data, true, learn_rate, cycles):
+        self.d_l_dy_pred = -2 * (true - self.output_vec)
+        self.learning_multiplier = learn_rate * self.d_l_dy_pred
+        for layerIdx in range(len(self.layers) - 1, 0, -1):
+            current_layer = self.layers[layerIdx]
+            self.backprop_layer(self.layers[layerIdx])
+            for nodeIdx in range(0, self.layers[layerIdx].get_num_nodes):
+                for outputIdx in range(0, self.layers[-1].get_num_nodes):
+                    current_layer.set_weight(nodeIdx, current_layer.get_weight(nodeIdx) - (current_layer.learn_rate(outputIdx) * current_layer.weight_partials(nodeIdx)))
+
+
 
 
 def create_layers(inputs, outputs, nodes_per_layer):
@@ -221,8 +257,10 @@ def network(inputs, outputs, nodes_per_layer, activation):
     layers = create_layers(inputs, outputs, nodes_per_layer)
     create_nodes(layers, activation)
     network = NeuralNetwork(layers)
-    network.feedforward_network((-3, -3, 4))
+    network.feedforward_network(np.array([-3, -3, 4]))
     print(network.get_output())
 
 
 network(inputs=3, outputs=1, nodes_per_layer=(3, 2, 4), activation="sigmoid")
+
+
