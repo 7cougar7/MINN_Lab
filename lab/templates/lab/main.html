@@ -2,7 +2,11 @@
 {% load static %}
 
 {% block header %}
+    <link rel="stylesheet" href="{% static 'lab/prism.css' %}">
+    <script src="{% static 'lab/prism.js' %}"></script>
     <script>
+    {#window.Prism = window.Prism || {};#}
+    {#Prism.manual = true#}
         function getFunctionType() {
             let funcVal = $('#activationSelect').val();
             $.post({
@@ -16,6 +20,9 @@
                     }
                 }
             )
+            {#Prism.highlightAllUnder($('pre'))#}
+            console.log()
+            Prism.highlightAll()
         }
 
         $(document).ready(function () {
@@ -68,9 +75,9 @@
             <span class="mif-menu"></span>
         </button>
         <div>
-            <code>
-                <pre>
-<span id="activation-function"></span>
+            <pre>
+                <code class="language-python">
+<code class="language-python" id="activation-function"></code>
 class Layer:
     def __init__(self, num_nodes):
         self.num_nodes = num_nodes
@@ -110,8 +117,8 @@ class NeuralNetwork:
 
     def train(self):
         return 0
-                </pre>
-            </code>
+                </code>
+            </pre>
         </div>
     </div>
 {% endblock %}

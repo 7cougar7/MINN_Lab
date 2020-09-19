@@ -207,7 +207,7 @@ class NeuralNetwork:
 
 
     def update_node(self, node):
-        node.weights -= self.d_l_dy_pred * node.weight_partials * node.node_partials
+        node.weights -= self.d_l_dy_pred * node.node_partials * node.weight_partials
 
 
     def backprop_node(self, node, deriv):
@@ -228,12 +228,13 @@ class NeuralNetwork:
 
     # where all the weights get updated
     def backprop_network(self, data, true, learn_rate, cycles):
-        self.d_l_dy_pred = -2 * (true - self.output_vec)
+        self.d_l_dy_pred = -2 * (true - self.output_vec) # size 3
         self.learning_multiplier = learn_rate * self.d_l_dy_pred
         for layerIdx in range(len(self.layers) - 1, 0, -1):
             current_layer = self.layers[layerIdx]
             self.backprop_layer(current_layer)
-            for node in current_layer.nodes:
+            for nodeIdx in range(0, current_layer.get_num_nodes()): # output: loops 012 # next in: loops 0123
+                self.update_node(current_layer.nodes[nodeIdx], self.d_l_dy_pred[]) # this works only for output layer
 
 
 
