@@ -174,6 +174,7 @@ class Layer:
     def __init__(self, num_nodes):
         self.num_nodes = num_nodes
         self.nodes = []
+        self.output_vec = None
 
     def get_num_nodes(self):
         return self.num_nodes
@@ -204,8 +205,10 @@ class NeuralNetwork:
             output_vec = self.feedforward_layer(self.layers[layerIdx], output_vec)
         self.output_vec = output_vec
 
-    def get_output(self):
-        return self.output_vec
+
+    def update_node(self, node):
+        node.weights -= self.d_l_dy_pred * node.weight_partials * node.node_partials
+
 
     def backprop_node(self, node, deriv):
         # FIXME
@@ -213,7 +216,6 @@ class NeuralNetwork:
         node.bias_partial = deriv
         node.weight_partials = node.input_vec * deriv
         node.node_partials = node.get_weights() * deriv
-        node.learn_rates = self.learning_multiplier * node.get_node_partials()
         return
 
     def backprop_layer(self, layer):
@@ -223,16 +225,17 @@ class NeuralNetwork:
             self.backprop_node(node, deriv)
         return
 
+
     # where all the weights get updated
     def backprop_network(self, data, true, learn_rate, cycles):
         self.d_l_dy_pred = -2 * (true - self.output_vec)
         self.learning_multiplier = learn_rate * self.d_l_dy_pred
         for layerIdx in range(len(self.layers) - 1, 0, -1):
             current_layer = self.layers[layerIdx]
-            self.backprop_layer(self.layers[layerIdx])
-            for nodeIdx in range(0, self.layers[layerIdx].get_num_nodes):
-                for outputIdx in range(0, self.layers[-1].get_num_nodes):
-                    current_layer.set_weight(nodeIdx, current_layer.get_weight(nodeIdx) - (current_layer.learn_rate(outputIdx) * current_layer.weight_partials(nodeIdx)))
+            self.backprop_layer(current_layer)
+            for node in current_layer.nodes:
+
+
 
 
 
