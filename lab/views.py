@@ -9,7 +9,18 @@ def home_page(request):
         'title': 'Home Page',
         'content': 'This is the homepage for the Labs Page'
     }
-    return render(request, 'lab/home_page.html', context)
+    return render(request, 'lab/loading.html', context)
+
+
+def main_page(request):
+    context = {
+        'title': 'MINN Lab'
+    }
+    return render(request, 'lab/main.html', context)
+
+
+def loading(request):
+    return render(request, 'lab/loading.html')
 
 
 def backend_call(request):
