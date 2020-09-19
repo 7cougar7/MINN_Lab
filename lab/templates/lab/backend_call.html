@@ -1,0 +1,13 @@
+{% extends 'lab/base.html' %}
+{% block body %}
+    {{ content }}
+    <form action="{% url 'lab:backend_request_function' %}" method="post">
+    {% csrf_token %}
+    <label for="number-input">Enter 2 numbers</label>
+        <input id="number-input" name="number-input" type="number" placeholder="10">
+        <input id="number-input1" name="number-input1" type="number" placeholder="2">
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    <hr>
+    {{ result }}
+{% endblock %}
