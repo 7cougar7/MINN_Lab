@@ -1,56 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="stylesheet" href="https://cdn.metroui.org.ua/v4/css/metro-all.min.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-            integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-            crossorigin="anonymous"></script>
-</head>
-<body>
-<script>
-    let numDots = 1;
-    let dots = '...';
+{% extends 'lab/base.html' %}
 
-    function updateLoading() {
-        if (numDots === 4) {
-            numDots = 1;
+{% block header %}
+    <script>
+        let numDots = 1;
+        let dots = '...';
+
+        function updateLoading() {
+            if (numDots === 4) {
+                numDots = 1;
+            }
+            let loadingString = "Loading" + dots.substr(0, numDots);
+            $('#loading').text(loadingString);
+            numDots++;
         }
-        let loadingString = "Loading" + dots.substr(0, numDots);
-        $('#loading').text(loadingString);
-        numDots++;
-    }
 
-    $(document).ready(function () {
-        updateLoading()
-        setInterval(function () {
+        $(document).ready(function () {
             updateLoading()
-        }, 1000);
-        setInterval(function () {
-            window.location.replace("{% url 'lab:main_page' %}");
-        }, (1000 * ((Math.random() * 1.5) + 3.85)));
-    })
-</script>
-<div class="container-fluid">
-    {#    <div class="grid">#}
-    <div class="row flex-align-center">
-        <div class="cell-4 offset-4">
-            <div data-role="cube"
-                 data-color="#a5c90f" data-flash-color="#ffb366">
-            </div>
-        </div>
-    </div>
-    <div class="row flex-align-center">
-        <div class="cell-2 offset-5">
-            <div class="text-center">
-                <h3 id="loading"></h3>
-            </div>
-        </div>
-    </div>
-    {#    </div>#}
-</div>
+            setInterval(function () {
+                updateLoading()
+            }, 1000);
+            setInterval(function () {
+                window.location.replace("{% url 'lab:main_page' %}");
+            }, (1000 * ((Math.random() * 1.5) + 3.85)));
+        })
+    </script>
+{% endblock %}
 
-<script src="https://cdn.metroui.org.ua/v4/js/metro.min.js"></script>
-</body>
-</html>
+{% block body %}
+    <div class="container-fluid">
+        <div class="row flex-align-center">
+            <div class="cell-4 offset-4">
+                <div data-role="cube"
+                     data-color="#a5c90f" data-flash-color="#ffb366">
+                </div>
+            </div>
+        </div>
+        <div class="row flex-align-center">
+            <div class="cell-2 offset-5">
+                <div class="text-center">
+                    <h3 id="loading"></h3>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

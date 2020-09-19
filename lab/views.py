@@ -14,7 +14,9 @@ def home_page(request):
 
 def main_page(request):
     context = {
-        'title': 'MINN Lab'
+        'title': 'MINN Lab',
+        'activation_functions': {'Sigmoid': 0, 'Hyperbolic Tangent': 1, 'ReLU': 2, 'Leaky/Parametric ReLU': 3, 'ELU': 4,
+                                 'Swish': 5, 'Linear': 6, 'Binary': 7}
     }
     return render(request, 'lab/main.html', context)
 

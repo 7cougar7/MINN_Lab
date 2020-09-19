@@ -1,25 +1,53 @@
 {% extends 'lab/base.html' %}
+{% load static %}
+
+{% block header %}
+    <script>
+        function setLayerForms() {
+            return 0
+        }
+
+        $(document).ready(function () {
+            let numLayersInput = $('#numLayers');
+            numLayersInput.on("change keyup paste", function () {
+                let numLayers = parseInt($(this).val());
+                if (!Number.isInteger(numLayers)) {
+                    numLayers = 0;
+                }
+                $('#nodesPerLayer').html('<p>You have typed: ' + numLayers + '</p>');
+            })
+        })
+    </script>
+{% endblock %}
 
 {% block body %}
-    <aside class="sidebar pos-absolute z-2" data-role="sidebar" data-toggle="#sidebar-toggle-2" data-shift=".shifted-content">
-        <div class="sidebar-header" data-image="images/sb-bg-1.jpg">
-            <div class="avatar">
-                <img data-role="gravatar" data-email="sergey@pimenov.com.ua">
-            </div>
-            <span class="title fg-white">Metro 4 Components Library</span>
-            <span class="subtitle fg-white"> 2018 © Sergey Pimenov</span>
+    <aside class="sidebar pos-absolute z-2" data-role="sidebar" data-toggle="#sidebar-toggle-2"
+           data-shift=".shifted-content">
+        <div class="sidebar-header" data-image="{% static 'lab/sidebar.jpg' %}">
+            <span class="title fg-white">My Interactice Neural Network Lab</span>
+            <span class="subtitle fg-white">HackMIT 2020</span>
         </div>
         <ul class="sidebar-menu">
-            <li><a><span class="mif-home icon"></span>Home</a></li>
-            <li><a><span class="mif-books icon"></span>Guide</a></li>
-            <li><a><span class="mif-files-empty icon"></span>Examples</a></li>
-            <li class="divider"></li>
-            <li><a><span class="mif-images icon"></span>Icons</a></li>
+            <li class="pl-2 pr-7 py-2">
+                <select name="activationFunc">
+                    {% for func, val in activation_functions.items %}
+                        <option value="{{ val }}">{{ func }}</option>
+                    {% endfor %}
+                </select>
+            </li>
+            <li class="pl-2 pr-7 py-2"><input type="number" id="numInput" name="numInput" placeholder="Number of Inputs"
+                                              min="1" max="5"></li>
+            <li class="pl-2 pr-7 py-2"><input type="number" id="numOutputs" name="numOutputs"
+                                              placeholder="Number of Outputs" min="1" max="5"></li>
+            <li class="pl-2 pr-7 py-2"><input type="number" id="numLayers" name="numLayers"
+                                              placeholder="Number of Layers" min="1" max="5"></li>
+            <li class="pl-2 pr-7 py-2">
+                <div id="nodesPerLayer"></div>
+            </li>
         </ul>
     </aside>
-    <div class="h-100 p-ab shifted-content">
-        <button class="button square pos-absolute pos-top-left"
-                id="sidebar-toggle-2">
+    <div class="shifted-content">
+        <button class="button square pos-top-left" id="sidebar-toggle-2">
             <span class="mif-menu"></span>
         </button>
     </div>
