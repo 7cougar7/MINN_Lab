@@ -7,12 +7,13 @@
     <script>
         let MAX_LAYERS = 5;
         let MAX_INPUTS_OUTPUTS = 5;
+        let currentScript = "";
 
         function getScript() {
             let inputElement = $('#numInputs');
             let outputElement = $('#numOutputs');
             let inputVal = parseInt(inputElement.val());
-            let outputVal = parseInt(inputElement.val());
+            let outputVal = parseInt(outputElement.val());
 
             if (inputVal > MAX_INPUTS_OUTPUTS) {
                 inputVal = MAX_INPUTS_OUTPUTS;
@@ -25,8 +26,8 @@
             }
 
             let nodesPerLayer = []
-            $('input[name="nodeLayerNum[]"]').each(function() {
-                nodesPerLayer.push(Number.isInteger(parseInt($(this).val())) ? parseInt($(this).val()) : 2 )
+            $('input[name="nodeLayerNum[]"]').each(function () {
+                nodesPerLayer.push(Number.isInteger(parseInt($(this).val())) ? parseInt($(this).val()) : 2)
             });
 
             $.post({
@@ -41,6 +42,7 @@
                     async: false,
                     success: function (data) {
                         $("#code").text(data.text)
+                        currentScript = data.text
                     }
                 }
             )
@@ -75,6 +77,11 @@
             })
             $('#numInputs, #activationSelect, #numOutputs').on("change keyup paste", function () {
                 getScript();
+            })
+            new ClipboardJS('.copy', {
+                text: function (trigger) {
+                    return trigger.getAttribute('aria-label');
+                }
             })
         })
     </script>
@@ -114,6 +121,7 @@
         <button class="button square pos-top-left" id="sidebar-toggle-2">
             <span class="mif-menu"></span>
         </button>
+        <button class="button pos-top-left copy" type="button" data-clipboard-target="#code">Copy</button>
         <div>
             <pre>
                 <code class="language-python" id="code">

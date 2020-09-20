@@ -61,14 +61,14 @@ def function_type(func_val):
     deriv_function_inputs = ['node.sum_val', 'input', 'node.weights[i]']
 
     functions = {
-        '0': '~~def sigmoid(x):\n~~~return 1 / (1 + np.exp(-x))\n\n~~def sigmoid_prime(x):\n~~~fx = sigmoid(x)\n~~~return fx * (1 - fx)\n',
-        '1': '~~def tanh(x):\n~~~return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))\n\n~~def tanh_prime(x):\n~~~t = tanh(x)\n~~~return 1 - t ** 2\n',
-        '2': '~~def relu(x):\n~~~return max(0, x)\n\n~~def relu_prime(x):\n~~~return 1 if x > 0 else 0\n',
-        '3': '~~def parametric_relu(x, alpha=0.01):\n~~~return max(alpha * x, x)\n\n~~def parametric_relu_prime(x, alpha=0.01):\n~~~return 1 if x > 0 else alpha\n',
-        '4': '~~def elu(x, alpha):\n~~~return x if x >= 0 else alpha * (np.exp(x) - 1)\n\n~~def elu_prime(x, alpha):\n~~~return 1 if x > 0 else alpha * np.exp(x)\n',
-        '5': '~~def swish(x):\n~~~return x / (1 + np.exp(-x))\n\n~~def swish_prime(x):\n~~~sig = sigmoid(x)\n~~~swi = swish(x)\n~~~return swi + (sig * (1 - swi))\n',
-        '6': '~~def linear(x, slope):\n~~~return x * slope\n\n~~def linear_prime(slope):\n~~~return slope\n',
-        '7': '~~def binary(x):\n~~~return 1 if x > 0 else 0\n\n~~def binary_prime():\n~~~return 0\n'
+        '0': 'def sigmoid(x):\n~return 1 / (1 + np.exp(-x))\n\ndef sigmoid_prime(x):\n~fx = sigmoid(x)\n~return fx * (1 - fx)\n',
+        '1': 'def tanh(x):\n~return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))\n\ndef tanh_prime(x):\n~t = tanh(x)\n~return 1 - t ** 2\n',
+        '2': 'def relu(x):\n~return max(0, x)\n\ndef relu_prime(x):\n~return 1 if x > 0 else 0\n',
+        '3': 'def parametric_relu(x, alpha=0.01):\n~return max(alpha * x, x)\n\ndef parametric_relu_prime(x, alpha=0.01):\n~return 1 if x > 0 else alpha\n',
+        '4': 'def elu(x, alpha):\n~return x if x >= 0 else alpha * (np.exp(x) - 1)\n\ndef elu_prime(x, alpha):\n~return 1 if x > 0 else alpha * np.exp(x)\n',
+        '5': 'def swish(x):\n~return x / (1 + np.exp(-x))\n\ndef swish_prime(x):\n~sig = sigmoid(x)\n~swi = swish(x)\n~return swi + (sig * (1 - swi))\n',
+        '6': 'def linear(x, slope):\n~return x * slope\n\ndef linear_prime(slope):\n~return slope\n',
+        '7': 'def binary(x):\n~return 1 if x > 0 else 0\n\ndef binary_prime():\n~return 0\n'
     }
 
     function_call = {
@@ -139,128 +139,129 @@ def post_script(request):
             outputs=int(request.POST.get('outputVal', '1')),
             nodes_per_layer=[int(num_string) for num_string in request.POST.getlist('numNodesPerLayer[]', ['2'])]
         )
-        nn_code = format_string('~~import numpy as np\n\n') + functions['function_def'] + format_string(r"""
-        class Neuron:
-            def __init__(self, number_of_weights):
-                self.number_of_weights = number_of_weights
-                self.input_vec = np.array([])
-                self.activation_val = 0
-                self.weights = np.random.rand(number_of_weights)
-                self.biases = np.random.rand()
-                self.learn_rates = None
-                self.weight_partials = None
-                self.node_partials = None
-                self.bias_partial = None
-                self.activation_func_val = 0
+        nn_code = format_string('import numpy as np\n\n') + functions['function_def'] + format_string(r"""
+class Neuron:
+    def __init__(self, number_of_weights):
+        self.number_of_weights = number_of_weights
+        self.input_vec = np.array([])
+        self.activation_val = 0
+        self.weights = np.random.rand(number_of_weights)
+        self.biases = np.random.rand()
+        self.learn_rates = None
+        self.weight_partials = None
+        self.node_partials = None
+        self.bias_partial = None
+        self.activation_func_val = 0
 
-            def feedforward(self, inputs):
-                # Weight inputs, add bias, and use activation function
-                self.input_vec = inputs
-                self.sum_val = np.dot(self.weights, inputs) + self.biases
-                self.activation_func_val = """ + functions['function_calls'][0] + """
-                return self.activation_func_val
+    def feedforward(self, inputs):
+        # Weight inputs, add bias, and use activation function
+        self.input_vec = inputs
+        self.sum_val = np.dot(self.weights, inputs) + self.biases
+        self.activation_func_val = """ + functions['function_calls'][0] + """
+        return self.activation_func_val
 
-            def get_weight(self, index):
-                return self.weights[index]
+    def get_weight(self, index):
+        return self.weights[index]
 
-            def set_weight(self, index, value):
-                self.weights[index] = value
+    def set_weight(self, index, value):
+        self.weights[index] = value
 
-            def backprop_node(self, deriv):
-                self.bias_partial = deriv
-                self.weight_partials = np.array(self.input_vec) * deriv
-                self.node_partials = self.weights * deriv
-
-
-        class Layer:
-            def __init__(self, num_nodes):
-                self.num_nodes = num_nodes
-                self.nodes = []
-                self.errors_vec = None
-
-            def get_num_nodes(self):
-                return self.num_nodes
-
-            def get_nodes(self):
-                return self.nodes
-
-            def append_node(self, node):
-                self.nodes.append(node)
-
-            def feedforward_layer(self, x_vec):  # layer = layers(i)
-                output = np.array([])
-                for node in self.nodes:
-                    node_output = node.feedforward(x_vec)
-                    output = np.append(output, node_output)
-                return output
-
-            def backprop_layer(self):
-                for node in self.get_nodes():
-                    deriv = """ + functions['function_calls'][1] + """
-                    node.backprop_node(deriv)
-
-            def layer_error(self, layer_in_front):
-                errors = np.array([])
-                for i in range(0, self.num_nodes):
-                    weights = np.array([])
-                    for node in layer_in_front.nodes:
-                        weights = np.append(weights, node.weights[i])
-                    errors = np.append(errors, np.dot(weights, layer_in_front.errors_vec))
-                self.errors_vec = errors
+    def backprop_node(self, deriv):
+        self.bias_partial = deriv
+        self.weight_partials = np.array(self.input_vec) * deriv
+        self.node_partials = self.weights * deriv
 
 
-        class NeuralNetwork:
-            def __init__(self):
+class Layer:
+    def __init__(self, num_nodes):
+        self.num_nodes = num_nodes
+        self.nodes = []
+        self.errors_vec = None
+
+    def get_num_nodes(self):
+        return self.num_nodes
+
+    def get_nodes(self):
+        return self.nodes
+
+    def append_node(self, node):
+        self.nodes.append(node)
+
+    def feedforward_layer(self, x_vec):  # layer = layers(i)
+        output = np.array([])
+        for node in self.nodes:
+            node_output = node.feedforward(x_vec)
+            output = np.append(output, node_output)
+        return output
+
+    def backprop_layer(self):
+        for node in self.get_nodes():
+            deriv = """ + functions['function_calls'][1] + """
+            node.backprop_node(deriv)
+
+    def layer_error(self, layer_in_front):
+        errors = np.array([])
+        for i in range(0, self.num_nodes):
+            weights = np.array([])
+            for node in layer_in_front.nodes:
+                weights = np.append(weights, node.weights[i])
+            errors = np.append(errors, np.dot(weights, layer_in_front.errors_vec))
+        self.errors_vec = errors
+
+
+class NeuralNetwork:
+    def __init__(self):
 """ + format_string(turn_node_to_string(network.layers)) + """
-                self.output_vec = np.array([])
+        self.output_vec = np.array([])
 
-            def feedforward_network(self, input_vec):
-                self.inputs = input_vec
-                output_vec = self.layers[1].feedforward_layer(input_vec)
-                for layerIdx in range(2, len(self.layers)):
-                    output_vec = self.layers[layerIdx].feedforward_layer(output_vec)
-                return output_vec
+    def feedforward_network(self, input_vec):
+        self.inputs = input_vec
+        output_vec = self.layers[1].feedforward_layer(input_vec)
+        for layerIdx in range(2, len(self.layers)):
+            output_vec = self.layers[layerIdx].feedforward_layer(output_vec)
+        return output_vec
 
-            def update_node_weights(self, node, node_number, layer_number, layer_in_front=0):
-                inputs = node.input_vec
-                if layer_number == len(self.layers) - 1:
-                    derivatives = np.array([])
-                    for input in inputs:
-                        deriv = """ + functions['function_calls'][2] + """
-                        derivatives = np.append(derivatives, deriv)
-                    delta_w = self.error[node_number] * inputs * derivatives
-                    node.weights += delta_w
+    def update_node_weights(self, node, node_number, layer_number, layer_in_front=0):
+        inputs = node.input_vec
+        if layer_number == len(self.layers) - 1:
+            derivatives = np.array([])
+            for input in inputs:
+                deriv = """ + functions['function_calls'][2] + """
+                derivatives = np.append(derivatives, deriv)
+            delta_w = self.error[node_number] * inputs * derivatives
+            node.weights += delta_w
+        else:
+            # dot product of derivatives of the output weights and the output errors
+            scalars = np.array([])
+            for i in range(0, self.layers[layer_number].num_nodes):
+                weight_deriv = np.array([])
+                for node in layer_in_front.nodes:
+                    weight_deriv = np.append(weight_deriv, """ + functions['function_calls'][3] + """)
+                scalars = np.append(scalars, np.dot(weight_deriv, layer_in_front.errors_vec))
+            delta_w = node.input_vec * node.node_partials * scalars[node_number]
+            node.weights += delta_w
+
+    # where all the weights get updated
+    def backprop_network(self, data, true):
+        self.error = true - self.feedforward_network(data)
+        self.layers[-1].errors_vec = self.error
+        for layerIdx in range(len(self.layers) - 1, 0, -1):
+            current_layer = self.layers[layerIdx]
+            if layerIdx <= len(self.layers) - 2:
+                current_layer.layer_error(self.layers[layerIdx + 1])
+            current_layer.backprop_layer()
+            for nodeIdx in range(0, current_layer.get_num_nodes()):
+                if layerIdx <= len(self.layers) - 2:
+                    current_layer.layer_error(self.layers[layerIdx + 1])
+                    self.update_node_weights(current_layer.nodes[nodeIdx], nodeIdx,
+                                             layerIdx, self.layers[layerIdx + 1])
                 else:
-                    # dot product of derivatives of the output weights and the output errors
-                    scalars = np.array([])
-                    for i in range(0, self.layers[layer_number].num_nodes):
-                        weight_deriv = np.array([])
-                        for node in layer_in_front.nodes:
-                            weight_deriv = np.append(weight_deriv, """ + functions['function_calls'][3] + """)
-                        scalars = np.append(scalars, np.dot(weight_deriv, layer_in_front.errors_vec))
-                    delta_w = node.input_vec * node.node_partials * scalars[node_number]
-                    node.weights += delta_w
-
-            # where all the weights get updated
-            def backprop_network(self, data, true):
-                self.error = true - self.feedforward_network(data)
-                self.layers[-1].errors_vec = self.error
-                for layerIdx in range(len(self.layers) - 1, 0, -1):
-                    current_layer = self.layers[layerIdx]
-                    if layerIdx <= len(self.layers) - 2:
-                        current_layer.layer_error(self.layers[layerIdx + 1])
-                    current_layer.backprop_layer()
-                    for nodeIdx in range(0, current_layer.get_num_nodes()):
-                        if layerIdx <= len(self.layers) - 2:
-                            current_layer.layer_error(self.layers[layerIdx + 1])
-                            self.update_node_weights(current_layer.nodes[nodeIdx], nodeIdx,
-                                                     layerIdx, self.layers[layerIdx + 1])
-                        else:
-                            self.update_node_weights(current_layer.nodes[nodeIdx], nodeIdx,
-                                                     layerIdx)
-                                                     
-            ~def train(self, dataset, true_set, epoch=1000):
-                ~for i in range(epoch):
-                    ~for data, true in zip(dataset, true_set):
-                        ~self.backprop_network(data, true)""")
+                    self.update_node_weights(current_layer.nodes[nodeIdx], nodeIdx,
+                                             layerIdx)
+                                             
+    def train(self, dataset, true_set, epoch=1000):
+        for i in range(epoch):
+            for data, true in zip(dataset, true_set):
+                self.backprop_network(data, true)""")
         return JsonResponse({'text': nn_code})
+
