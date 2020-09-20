@@ -329,6 +329,7 @@ def turn_node_to_string(layers):
     num_layers = len(layers)
     class_list = []
     output_list = []
+    layer_names = []
     for layerIdx in range(0, num_layers - 1):
         layer = layers[layerIdx]
         this_list = []
@@ -341,7 +342,7 @@ def turn_node_to_string(layers):
             master_string += name_of_node + '\n'
         class_list.append(this_list)
         master_string += '\n'
-    for i in range(0, layers[-1].num_nodes - 1):
+    for i in range(0, layers[-1].num_nodes):
         master_string += '~~~~'
         name_of_node = "self.On" + str(i)
         output_list.append(name_of_node)
@@ -349,17 +350,15 @@ def turn_node_to_string(layers):
         master_string += name_of_node + '\n'
     master_string += '\n'
     for layerIdx in range(0, num_layers - 1):
-        master_string += "~~~~layer" + str(layerIdx) + " = Layer(num_nodes=" + str(layers[layerIdx].num_nodes) + ")\n"
-        master_string += "~~~~layer" + str(layerIdx) + ".nodes = ["
+        name = "layer" + str(layerIdx)
+        layer_names.append(name)
+        master_string += "~~~~" + name + " = Layer(num_nodes=" + str(layers[layerIdx].num_nodes) + ")\n"
+        master_string += "~~~~" + name + ".nodes = ["
         for j in range(0, len(class_list[layerIdx]) - 1):
             master_string += class_list[layerIdx][j] + ", "
         master_string += class_list[layerIdx][-1] + "]\n\n"
     master_string += "~~~~output = Layer(num_nodes=" + str(layers[-1].num_nodes) + ")\n"
     master_string += "~~~~output.nodes = ["
-    if len(output_list) != 1:
-        for o in range(0, len(output_list)):
-            master_string += output_list[o] + ", "
-        master_string += output_list[-1] + "]\n"
-    else:
-        master_string += output_list[-1] + "]\n"
+    master_string += ", ".join(output_list) + ']\n'
+    master_string += "\n~~~~self.layers = [" + ", ".join(layer_names+['output']) + "]"
     return master_string

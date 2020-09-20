@@ -212,7 +212,6 @@ def post_script(request):
         class NeuralNetwork:
             def __init__(self):
 """ + format_string(turn_node_to_string(network.layers)) + """
-                self.layers = []
                 self.output_vec = np.array([])
 
             def feedforward_network(self, input_vec):
@@ -251,7 +250,7 @@ def post_script(request):
                     if layerIdx <= len(self.layers) - 2:
                         current_layer.layer_error(self.layers[layerIdx + 1])
                     current_layer.backprop_layer()
-                    for nodeIdx in range(0, current_layer.get_num_nodes()):3
+                    for nodeIdx in range(0, current_layer.get_num_nodes()):
                         if layerIdx <= len(self.layers) - 2:
                             current_layer.layer_error(self.layers[layerIdx + 1])
                             self.update_node_weights(current_layer.nodes[nodeIdx], nodeIdx,
