@@ -61,7 +61,7 @@ def function_type(func_val):
     deriv_function_inputs = ['node.sum_val', 'input', 'node.weights[i]']
 
     functions = {
-        '0': '~~def sigmoid(x):\n~~~return 1 / (1 + np.exp(-x))\n\n~~def sigmoid_prime(x):\n~~~tfx = sigmoid(x)\n~~~return fx * (1 - fx)\n',
+        '0': '~~def sigmoid(x):\n~~~return 1 / (1 + np.exp(-x))\n\n~~def sigmoid_prime(x):\n~~~fx = sigmoid(x)\n~~~return fx * (1 - fx)\n',
         '1': '~~def tanh(x):\n~~~return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))\n\n~~def tanh_prime(x):\n~~~t = tanh(x)\n~~~return 1 - t ** 2\n',
         '2': '~~def relu(x):\n~~~return max(0, x)\n\n~~def relu_prime(x):\n~~~return 1 if x > 0 else 0\n',
         '3': '~~def parametric_relu(x, alpha=0.01):\n~~~return max(alpha * x, x)\n\n~~def parametric_relu_prime(x, alpha=0.01):\n~~~return 1 if x > 0 else alpha\n',
@@ -139,7 +139,7 @@ def post_script(request):
             outputs=int(request.POST.get('outputVal', '1')),
             nodes_per_layer=[int(num_string) for num_string in request.POST.getlist('numNodesPerLayer[]', ['2'])]
         )
-        nn_code = r'' + functions['function_def'] + """
+        nn_code = format_string('~~import numpy as np\n\n') + functions['function_def'] + format_string(r"""
         class Neuron:
             def __init__(self, number_of_weights):
                 self.number_of_weights = number_of_weights
@@ -151,7 +151,7 @@ def post_script(request):
                 self.weight_partials = None
                 self.node_partials = None
                 self.bias_partial = None
-                self.activation_func_val
+                self.activation_func_val = 0
 
             def feedforward(self, inputs):
                 # Weight inputs, add bias, and use activation function
@@ -210,9 +210,9 @@ def post_script(request):
 
 
         class NeuralNetwork:
-            def __init__(self, layers):
+            def __init__(self):
 """ + format_string(turn_node_to_string(network.layers)) + """
-                self.layers = layers
+                self.layers = []
                 self.output_vec = np.array([])
 
             def feedforward_network(self, input_vec):
@@ -259,9 +259,9 @@ def post_script(request):
                         else:
                             self.update_node_weights(current_layer.nodes[nodeIdx], nodeIdx,
                                                      layerIdx)
-
-            def train(self, dataset, true_set, epoch=1000):
-                for i in range(epoch):
-                    for data, true in zip(dataset, true_set):
-                        self.backprop_network(data, true)"""
+                                                     
+            ~def train(self, dataset, true_set, epoch=1000):
+                ~for i in range(epoch):
+                    ~for data, true in zip(dataset, true_set):
+                        ~self.backprop_network(data, true)""")
         return JsonResponse({'text': nn_code})
