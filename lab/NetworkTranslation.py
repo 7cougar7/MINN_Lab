@@ -334,7 +334,7 @@ def turn_node_to_string(layers):
         layer = layers[layerIdx]
         this_list = []
         for i in range(0, layer.num_nodes):
-            master_string += '~~~~'
+            master_string += '~~'
             name_of_node = "self.L" + str(layerIdx) + "n" + str(i)
             this_list.append(name_of_node)
             name_of_node += " = Neuron(" + "number_of_weights=" + str(layers[layerIdx - 1].num_nodes) + ""
@@ -343,7 +343,7 @@ def turn_node_to_string(layers):
         class_list.append(this_list)
         master_string += '\n'
     for i in range(0, layers[-1].num_nodes):
-        master_string += '~~~~'
+        master_string += '~~'
         name_of_node = "self.On" + str(i)
         output_list.append(name_of_node)
         name_of_node += " = Neuron(" + "number_of_weights=" + str(layers[-2].num_nodes) + ")"
@@ -352,13 +352,13 @@ def turn_node_to_string(layers):
     for layerIdx in range(0, num_layers - 1):
         name = "layer" + str(layerIdx)
         layer_names.append(name)
-        master_string += "~~~~" + name + " = Layer(num_nodes=" + str(layers[layerIdx].num_nodes) + ")\n"
-        master_string += "~~~~" + name + ".nodes = ["
+        master_string += "~~" + name + " = Layer(num_nodes=" + str(layers[layerIdx].num_nodes) + ")\n"
+        master_string += "~~" + name + ".nodes = ["
         for j in range(0, len(class_list[layerIdx]) - 1):
             master_string += class_list[layerIdx][j] + ", "
         master_string += class_list[layerIdx][-1] + "]\n\n"
-    master_string += "~~~~output = Layer(num_nodes=" + str(layers[-1].num_nodes) + ")\n"
-    master_string += "~~~~output.nodes = ["
+    master_string += "~~output = Layer(num_nodes=" + str(layers[-1].num_nodes) + ")\n"
+    master_string += "~~output.nodes = ["
     master_string += ", ".join(output_list) + ']\n'
-    master_string += "\n~~~~self.layers = [" + ", ".join(layer_names+['output']) + "]"
+    master_string += "\n~~self.layers = [" + ", ".join(layer_names+['output']) + "]"
     return master_string
