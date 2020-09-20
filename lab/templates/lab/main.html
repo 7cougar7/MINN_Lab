@@ -2,30 +2,42 @@
 {% load static %}
 
 {% block header %}
-        <link rel="stylesheet" href="{% static 'lab/prism.css' %}">
-        <script src="{% static 'lab/prism.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'lab/prism.css' %}">
+    <script src="{% static 'lab/prism.js' %}"></script>
     <script>
-        {#window.Prism = window.Prism || {};#}
-        {#Prism.manual = true#}
         let MAX_LAYERS = 5;
         let MAX_INPUTS_OUTPUTS = 5;
 
-        function getFunctionType() {
+        function getScript() {
+            let inputElement = $('#numInputs');
+            let outputElement = $('#numOutputs');
+            let inputVal = parseInt(inputElement.val());
+            let outputVal = parseInt(inputElement.val());
+
+            if (inputVal > MAX_INPUTS_OUTPUTS) {
+                inputVal = MAX_INPUTS_OUTPUTS;
+                inputElement.val(MAX_INPUTS_OUTPUTS)
+            }
+
+            if (outputVal > MAX_INPUTS_OUTPUTS) {
+                outputVal = MAX_INPUTS_OUTPUTS;
+                outputElement.val(MAX_INPUTS_OUTPUTS)
+            }
             $.post({
-                    url: '{% url 'lab:post_func_type' %}',
+                    url: '{% url 'lab:post_scipt' %}', //TODO Change this URL
                     data: {
+                        inputVal: Number.isInteger(inputVal) ? inputVal : 1,
+                        outputVal: Number.isInteger(outputVal) ? outputVal : 1,
                         funcVal: $('#activationSelect').val(),
                         csrfmiddlewaretoken: '{{ csrf_token }}',
                     },
-                    async: true,
+                    async: false,
                     success: function (data) {
-                        $("#activation-function").text(data.functionCode)
+                        $("#code").text(data.text)
                     }
                 }
             )
-            {#Prism.highlightAllUnder($('pre'))#}
-            {#Prism.highlightElement($('.language-python1')[0], false)#}
-            {#console.log(Prism)#}
+            Prism.highlightAll()
         }
 
         function updateNumLayerInputs() {
@@ -45,75 +57,17 @@
             $('#nodesPerLayer').html(elements);
         }
 
-        function getInputText() {
-            let inputElement = $('#numInputs');
-            let inputVal = parseInt(inputElement.val());
-
-            if (inputVal > MAX_INPUTS_OUTPUTS) {
-                inputVal = MAX_INPUTS_OUTPUTS;
-                inputElement.val(MAX_INPUTS_OUTPUTS)
-            }
-            $.post({
-                    url: '{% url 'lab:post_number_inputs' %}',
-                    data: {
-                        inputVal: Number.isInteger(inputVal) ? inputVal : 1,
-                        csrfmiddlewaretoken: '{{ csrf_token }}',
-                    },
-                    async: true,
-                    success: function (data) {
-                        $("#number-input-text").text(data.inputText)
-                    }
-                }
-            )
-            {#Prism.highlightAllUnder($('pre'))#}
-            {#Prism.highlightElement($('.language-python1')[0], false)#}
-            {#console.log(Prism)#}
-        }
-
-        function getOutputText() {
-            let inputElement = $('#numOutputs');
-            let inputVal = parseInt(inputElement.val());
-
-            if (inputVal > MAX_INPUTS_OUTPUTS) {
-                inputVal = MAX_INPUTS_OUTPUTS;
-                inputElement.val(MAX_INPUTS_OUTPUTS)
-            }
-            $.post({
-                    url: '{% url 'lab:post_number_inputs' %}',
-                    data: {
-                        inputVal: Number.isInteger(inputVal) ? inputVal : 1,
-                        csrfmiddlewaretoken: '{{ csrf_token }}',
-                    },
-                    async: true,
-                    success: function (data) {
-                        $("#number-output-text").text(data.inputText)
-                    }
-                }
-            )
-            {#Prism.highlightAllUnder($('pre'))#}
-            {#Prism.highlightElement($('.language-python1')[0], false)#}
-            {#console.log(Prism)#}
-        }
-
         $(document).ready(function () {
             setTimeout(function () {
                 Metro.sidebar.open($('#sidebar-ele'))
             }, 250)
-            getFunctionType()
-            updateNumLayerInputs()
-            getInputText()
-            getOutputText()
+            updateNumLayerInputs();
+            getScript();
             $('#numLayers').on("change keyup paste", function () {
                 updateNumLayerInputs();
             })
-            $('#activationSelect').change(function () {
-                getFunctionType();
-            })
-            $('#numInputs').on("change keyup paste", function () {
-                getInputText();
-            })
-            $('#numOutputs').on("change keyup paste", function () {
-                getOutputText();
+            $('#numInputs, #activationSelect, #numOutputs').on("change keyup paste", function () {
+                getScript();
             })
         })
     </script>
@@ -155,143 +109,7 @@
         </button>
         <div>
             <pre>
-<code class="language-python" id="activation-function"></code>
-            </pre>
-            <pre>
-<code class="language-python" id="number-input-text"></code>
-            </pre>
-            <pre>
-<code class="language-python" id="number-output-text"></code>
-            </pre>
-            <pre>
-                <code class="language-python1">
-class Neuron:
-    def __init__(self, number_of_weights):
-        self.number_of_weights = number_of_weights
-        self.input_vec = np.array([])
-        self.activation_val = 0
-        self.weights = np.random.rand(number_of_weights)
-        self.biases = np.random.rand()
-        self.learn_rates = None
-        self.weight_partials = None
-        self.node_partials = None
-        self.bias_partial = None
-
-    def feedforward(self, inputs):
-        # Weight inputs, add bias, and use activation function
-        self.input_vec = inputs
-        self.sum_val = np.dot(self.weights, inputs) + self.biases
-        # FIXME self.activation_val = activation(self.sum_val)
-        self.sigmoid_val = sigmoid(self.sum_val)
-        return self.sigmoid_val
-
-    def get_weight(self, index):
-        return self.weights[index]
-
-    def set_weight(self, index, value):
-        self.weights[index] = value
-
-    def backprop_node(self, deriv):
-        # FIXME
-        self.bias_partial = deriv
-        self.weight_partials = np.array(self.input_vec) * deriv
-        self.node_partials = self.weights * deriv
-
-
-class Layer:
-    def __init__(self, num_nodes):
-        self.num_nodes = num_nodes
-        self.nodes = []
-        self.errors_vec = None
-
-    def get_num_nodes(self):
-        return self.num_nodes
-
-    def get_nodes(self):
-        return self.nodes
-
-    def append_node(self, node):
-        self.nodes.append(node)
-
-    def feedforward_layer(self, x_vec):  # layer = layers(i)
-        output = np.array([])
-        for node in self.nodes:
-            node_output = node.feedforward(x_vec)
-            output = np.append(output, node_output)
-        return output
-
-    def backprop_layer(self):
-        for node in self.get_nodes():
-            # FIXME
-            deriv = sigmoid_prime(node.sum_val)
-            node.backprop_node(deriv)
-
-    def layer_error(self, layer_in_front):
-        errors = np.array([])
-        for i in range(0, self.num_nodes):
-            weights = np.array([])
-            for node in layer_in_front.nodes:
-                weights = np.append(weights, node.weights[i])
-            errors = np.append(errors, np.dot(weights, layer_in_front.errors_vec))
-        self.errors_vec = errors
-
-
-class NeuralNetwork:
-    def __init__(self, layers):
-        self.layers = layers
-        self.output_vec = np.array([])
-
-    def feedforward_network(self, input_vec):
-        self.inputs = input_vec
-        output_vec = self.layers[1].feedforward_layer(input_vec)
-        for layerIdx in range(2, len(self.layers)):
-            output_vec = self.layers[layerIdx].feedforward_layer(output_vec)
-        return output_vec
-
-    def update_node_weights(self, node, node_number, layer_number, layer_in_front=0):
-        inputs = node.input_vec
-        # FIXME
-        if layer_number == len(self.layers) - 1:
-            derivatives = np.array([])
-            for input in inputs:
-                deriv = sigmoid_prime(input)
-                derivatives = np.append(derivatives, deriv)
-            delta_w = self.error[node_number] * inputs * derivatives
-            node.weights += delta_w
-        else:
-            # dot product of derivatives of the output weights and the output errors
-            scalars = np.array([])
-            for i in range(0, self.layers[layer_number].num_nodes):
-                weight_deriv = np.array([])
-                for node in layer_in_front.nodes:
-                    weight_deriv = np.append(weight_deriv, sigmoid_prime(node.weights[i]))
-                scalars = np.append(scalars, np.dot(weight_deriv, layer_in_front.errors_vec))
-            delta_w = node.input_vec * node.node_partials * scalars[node_number]
-            node.weights += delta_w
-        return
-
-    # where all the weights get updated
-    def backprop_network(self, data, true):
-        self.error = true - self.feedforward_network(data)
-        self.layers[-1].errors_vec = self.error
-        for layerIdx in range(len(self.layers) - 1, 0, -1):
-            current_layer = self.layers[layerIdx]
-            if layerIdx <= len(self.layers) - 2:
-                current_layer.layer_error(self.layers[layerIdx + 1])
-            current_layer.backprop_layer()
-            for nodeIdx in range(0, current_layer.get_num_nodes()):  # output: loops 012 # next in: loops 0123
-                if layerIdx <= len(self.layers) - 2:
-                    current_layer.layer_error(self.layers[layerIdx + 1])
-                    self.update_node_weights(current_layer.nodes[nodeIdx], nodeIdx,
-                                             layerIdx, self.layers[layerIdx + 1])
-                else:
-                    self.update_node_weights(current_layer.nodes[nodeIdx], nodeIdx,
-                                             layerIdx)
-
-    def train(self, dataset, true_set, epoch=1000):
-        for i in range(epoch):
-            for data, true in zip(dataset, true_set):
-                self.backprop_network(data, true)
+                <code class="language-python" id="code">
                 </code>
             </pre>
         </div>

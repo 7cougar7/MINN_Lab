@@ -54,7 +54,11 @@ def backend_request_function(request):
     return redirect(reverse('lab:backend_call'))
 
 
-def post_function_type(request):
+def function_type(func_val):
+    int_func_val = int(func_val)
+    function_inputs = ['self.sum_val']
+    deriv_function_inputs = ['node.sum_val', 'input', 'node.weights[i]']
+
     functions = {
         '0': 'def sigmoid(x):\n~return 1 / (1 + np.exp(-x))\n\ndef sigmoid_prime(x):\n~tfx = sigmoid(x)\n~return fx * (1 - fx)\n',
         '1': 'def tanh(x):\n~return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))\n\ndef tanh_prime(x):\n~t = tanh(x)\n~return 1 - t ** 2\n',
@@ -65,10 +69,51 @@ def post_function_type(request):
         '6': 'def linear(x, slope):\n~return x * slope\n\ndef linear_prime(slope):\n~return slope\n',
         '7': 'def binary(x):\n~return 1 if x > 0 else 0\n\ndef binary_prime():\n~return 0\n'
     }
-    response = {
-        'functionCode': format_string(functions.get(request.POST.get('funcVal', '0')))
+
+    function_call = {
+        '0': 'sigmoid(',
+        '1': 'tanh(',
+        '2': 'relu(',
+        '3': 'parametric_relu(',
+        '4': 'elu(',
+        '5': 'swish(',
+        '6': 'linear(',
+        '7': 'binary('
     }
-    return JsonResponse(response)
+
+    deriv_function_call = {
+        '0': 'sigmoid_prime(',
+        '1': 'tanh_prime(',
+        '2': 'relu_prime(',
+        '3': 'parametric_relu_prime(',
+        '4': 'elu_prime(',
+        '5': 'swish_prime(',
+        '6': 'linear_prime(',
+        '7': 'binary_prime('
+    }
+    desired_function_call = function_call.get(func_val)
+    desired_deriv_function_call = deriv_function_call.get(func_val)
+    function_calls = []
+    for func_input in function_inputs:
+        temp_call = desired_function_call + func_input
+        if int_func_val != 5 and 3 <= int_func_val <= 6:
+            temp_call += ', alpha'  # todo fix me
+        temp_call += ')'
+        function_calls.append(temp_call)
+    for func_input in deriv_function_inputs:
+        temp_call = desired_deriv_function_call
+        if 3 <= int_func_val <= 4:
+            temp_call += func_input + ', alpha'  # todo fix me
+        elif int_func_val != 7:
+            temp_call += func_input
+        temp_call += ')'
+        function_calls.append(temp_call)
+
+    functions = {
+        'function_def': format_string(functions.get(func_val)),
+        'function_calls': function_calls,
+    }
+    return functions
 
 
 def post_number_inputs(request):
@@ -83,3 +128,132 @@ def post_number_outputs(request):
         'outputText': 'This is OUTPUT test. See post_function_type for example: ' + request.POST.get('outputVal', '0')
     }
     return JsonResponse(response)
+
+
+def post_script(request):
+    if request.POST:
+        functions = function_type(request.POST.get('funcVal', '0'))
+        nn_code = r"""
+        class Neuron:
+            def __init__(self, number_of_weights):
+                self.number_of_weights = number_of_weights
+                self.input_vec = np.array([])
+                self.activation_val = 0
+                self.weights = np.random.rand(number_of_weights)
+                self.biases = np.random.rand()
+                self.learn_rates = None
+                self.weight_partials = None
+                self.node_partials = None
+                self.bias_partial = None
+
+            def feedforward(self, inputs):
+                # Weight inputs, add bias, and use activation function
+                self.input_vec = inputs
+                self.sum_val = np.dot(self.weights, inputs) + self.biases
+                self.sigmoid_val = """ + functions['function_calls'][0] + """
+                return self.sigmoid_val
+
+            def get_weight(self, index):
+                return self.weights[index]
+
+            def set_weight(self, index, value):
+                self.weights[index] = value
+
+            def backprop_node(self, deriv):
+                self.bias_partial = deriv
+                self.weight_partials = np.array(self.input_vec) * deriv
+                self.node_partials = self.weights * deriv
+
+
+        class Layer:
+            def __init__(self, num_nodes):
+                self.num_nodes = num_nodes
+                self.nodes = []
+                self.errors_vec = None
+
+            def get_num_nodes(self):
+                return self.num_nodes
+
+            def get_nodes(self):
+                return self.nodes
+
+            def append_node(self, node):
+                self.nodes.append(node)
+
+            def feedforward_layer(self, x_vec):  # layer = layers(i)
+                output = np.array([])
+                for node in self.nodes:
+                    node_output = node.feedforward(x_vec)
+                    output = np.append(output, node_output)
+                return output
+
+            def backprop_layer(self):
+                for node in self.get_nodes():
+                    deriv = """ + functions['function_calls'][1] + """
+                    node.backprop_node(deriv)
+
+            def layer_error(self, layer_in_front):
+                errors = np.array([])
+                for i in range(0, self.num_nodes):
+                    weights = np.array([])
+                    for node in layer_in_front.nodes:
+                        weights = np.append(weights, node.weights[i])
+                    errors = np.append(errors, np.dot(weights, layer_in_front.errors_vec))
+                self.errors_vec = errors
+
+
+        class NeuralNetwork:
+            def __init__(self, layers):
+                self.layers = layers
+                self.output_vec = np.array([])
+
+            def feedforward_network(self, input_vec):
+                self.inputs = input_vec
+                output_vec = self.layers[1].feedforward_layer(input_vec)
+                for layerIdx in range(2, len(self.layers)):
+                    output_vec = self.layers[layerIdx].feedforward_layer(output_vec)
+                return output_vec
+
+            def update_node_weights(self, node, node_number, layer_number, layer_in_front=0):
+                inputs = node.input_vec
+                if layer_number == len(self.layers) - 1:
+                    derivatives = np.array([])
+                    for input in inputs:
+                        deriv = """ + functions['function_calls'][2] + """
+                        derivatives = np.append(derivatives, deriv)
+                    delta_w = self.error[node_number] * inputs * derivatives
+                    node.weights += delta_w
+                else:
+                    # dot product of derivatives of the output weights and the output errors
+                    scalars = np.array([])
+                    for i in range(0, self.layers[layer_number].num_nodes):
+                        weight_deriv = np.array([])
+                        for node in layer_in_front.nodes:
+                            weight_deriv = np.append(weight_deriv, """ + functions['function_calls'][3] + """)
+                        scalars = np.append(scalars, np.dot(weight_deriv, layer_in_front.errors_vec))
+                    delta_w = node.input_vec * node.node_partials * scalars[node_number]
+                    node.weights += delta_w
+
+            # where all the weights get updated
+            def backprop_network(self, data, true):
+                self.error = true - self.feedforward_network(data)
+                self.layers[-1].errors_vec = self.error
+                for layerIdx in range(len(self.layers) - 1, 0, -1):
+                    current_layer = self.layers[layerIdx]
+                    if layerIdx <= len(self.layers) - 2:
+                        current_layer.layer_error(self.layers[layerIdx + 1])
+                    current_layer.backprop_layer()
+                    for nodeIdx in range(0, current_layer.get_num_nodes()):3
+                        if layerIdx <= len(self.layers) - 2:
+                            current_layer.layer_error(self.layers[layerIdx + 1])
+                            self.update_node_weights(current_layer.nodes[nodeIdx], nodeIdx,
+                                                     layerIdx, self.layers[layerIdx + 1])
+                        else:
+                            self.update_node_weights(current_layer.nodes[nodeIdx], nodeIdx,
+                                                     layerIdx)
+
+            def train(self, dataset, true_set, epoch=1000):
+                for i in range(epoch):
+                    for data, true in zip(dataset, true_set):
+                        self.backprop_network(data, true)"""
+        return JsonResponse({'text': nn_code})
