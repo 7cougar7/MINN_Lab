@@ -341,7 +341,7 @@ def turn_node_to_string(layers):
             master_string += name_of_node + '\n'
         class_list.append(this_list)
         master_string += '\n'
-    for i in range(0, layers[-1].num_nodes):
+    for i in range(0, layers[-1].num_nodes - 1):
         master_string += '~~~~'
         name_of_node = "self.On" + str(i)
         output_list.append(name_of_node)
