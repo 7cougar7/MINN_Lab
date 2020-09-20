@@ -73,7 +73,7 @@
             $('#numLayers').on("change keyup paste", function () {
                 updateNumLayerInputs();
             })
-            $('#numInputs, #activationSelect, #numOutputs').on("change keyup paste", function () {
+            $('#numInputs, #activationSelect, #numOutputs, input[name="nodeLayerNum[]"]').on("change keyup paste", function () {
                 getScript();
             })
         })
