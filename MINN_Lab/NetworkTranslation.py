@@ -136,7 +136,7 @@ mse_loss_s = "def mse_loss(y_true, y_pred):\n\treturn ((y_true - y_pred) ** 2).m
 
 
 class Neuron:
-    def __init__(self, number_of_weights, activation="sigmoid"):
+    def __init__(self, number_of_weights):
         self.number_of_weights = number_of_weights
         self.input_vec = np.array([])
         self.activation_val = 0
@@ -163,11 +163,9 @@ class Neuron:
 
     def backprop_node(self, deriv):
         # FIXME
-        # pred = node.sigmoid_val
         self.bias_partial = deriv
         self.weight_partials = np.array(self.input_vec) * deriv
         self.node_partials = self.weights * deriv
-        return
 
 
 class Layer:
@@ -197,7 +195,6 @@ class Layer:
             # FIXME
             deriv = sigmoid_prime(node.sum_val)
             node.backprop_node(deriv)
-        return
 
     def layer_error(self, layer_in_front):
         errors = np.array([])
@@ -207,7 +204,6 @@ class Layer:
                 weights = np.append(weights, node.weights[i])
             errors = np.append(errors, np.dot(weights, layer_in_front.errors_vec))
         self.errors_vec = errors
-        return
 
 
 class NeuralNetwork:
@@ -223,7 +219,6 @@ class NeuralNetwork:
         return output_vec
 
     def update_node_weights(self, node, node_number, layer_number, layer_in_front=0):
-        # node.weights -= self.d_l_dy_pred * node.node_partials * node.weight_partials
         inputs = node.input_vec
         # FIXME
         if layer_number == len(self.layers) - 1:
@@ -231,8 +226,6 @@ class NeuralNetwork:
             for input in inputs:
                 deriv = sigmoid_prime(input)
                 derivatives = np.append(derivatives, deriv)
-                # while len(error_temp) != self.layers[-1].num_nodes:
-                # pass
             delta_w = self.error[node_number] * inputs * derivatives
             node.weights += delta_w
         else:
@@ -243,19 +236,11 @@ class NeuralNetwork:
                 for node in layer_in_front.nodes:
                     weight_deriv = np.append(weight_deriv, sigmoid_prime(node.weights[i]))
                 scalars = np.append(scalars, np.dot(weight_deriv, layer_in_front.errors_vec))
-            # derivatives of inputs * inputs * correct scalar = delta_w
-            # print('inputs', type(inputs))
-            # print('partials', type(node.node_partials))
-            # print('scalars', type(scalars[node_number]))
             delta_w = node.input_vec * node.node_partials * scalars[node_number]
             node.weights += delta_w
-        # print('node('+str(layer_number)+', ' + str(node_number) + ': ', node.weights)
-        return
 
     # where all the weights get updated
     def backprop_network(self, data, true):
-        # self.d_l_dy_pred = -2 * (true - self.output_vec) # size 3
-        # self.learning_multiplier = learn_rate * self.d_l_dy_pred
         self.error = true - self.feedforward_network(data)
         self.layers[-1].errors_vec = self.error
         for layerIdx in range(len(self.layers) - 1, 0, -1):
@@ -272,12 +257,14 @@ class NeuralNetwork:
                     self.update_node_weights(current_layer.nodes[nodeIdx], nodeIdx,
                                              layerIdx)
 
-    def train(self, dataset, true_set, epoch=1000, learn_rate=0.1):
+    def train(self, dataset, true_set, epoch=1000):
         for i in range(epoch):
             for data, true in zip(dataset, true_set):
                 self.backprop_network(data, true)
 
-
+"""
+This is a comment
+"""
 def create_layers(inputs, outputs, nodes_per_layer):
     layers = [Layer(inputs)]
     for i in range(0, len(nodes_per_layer)):
@@ -286,7 +273,7 @@ def create_layers(inputs, outputs, nodes_per_layer):
     return layers
 
 
-def create_nodes(layers, activation):
+def create_nodes(layers):
     layer_length = len(layers)
     for layerIdx in range(1, layer_length):
         layer = layers[layerIdx]
@@ -294,9 +281,9 @@ def create_nodes(layers, activation):
             layer.append_node(Neuron(layers[layerIdx - 1].get_num_nodes()))
 
 
-def network(inputs, outputs, nodes_per_layer, activation):
+def network(inputs, outputs, nodes_per_layer):
     layers = create_layers(inputs, outputs, nodes_per_layer)
-    create_nodes(layers, activation)
+    create_nodes(layers)
     network = NeuralNetwork(layers)
     # network.feedforward_network(np.array([-3.0, -3.0]))
     data = np.array([-5.2, 3.1, 3.2, 6])
@@ -325,11 +312,11 @@ def network(inputs, outputs, nodes_per_layer, activation):
 
     print("Emily:", network.feedforward_network(emily))  # 0.951 - F
     print("Frank:", network.feedforward_network(frank))  # 0.039 - M
-    network.train(data, all_y_trues, 25000, 2)
+    network.train(data, all_y_trues, 25000)
 
     print("Emily:", network.feedforward_network(emily))  # 0.951 - F
     print("Frank:", network.feedforward_network(frank))  # 0.039 - M
 
 
 # network(inputs=3, outputs=1, nodes_per_layer=(2,), activation="sigmoid")
-network(inputs=2, outputs=2, nodes_per_layer=(2,), activation="sigmoid")
+network(inputs=2, outputs=2, nodes_per_layer=(2,))
