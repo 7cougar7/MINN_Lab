@@ -169,6 +169,7 @@ class Neuron:
         self.node_partials = self.weights * deriv
         return
 
+
 class Layer:
     def __init__(self, num_nodes):
         self.num_nodes = num_nodes
@@ -209,13 +210,10 @@ class Layer:
         return
 
 
-
-
 class NeuralNetwork:
     def __init__(self, layers):
         self.layers = layers
         self.output_vec = np.array([])
-
 
     def feedforward_network(self, input_vec):
         self.inputs = input_vec
@@ -223,8 +221,6 @@ class NeuralNetwork:
         for layerIdx in range(2, len(self.layers)):
             output_vec = self.layers[layerIdx].feedforward_layer(output_vec)
         return output_vec
-
-
 
     def update_node_weights(self, node, node_number, layer_number, layer_in_front=0):
         # node.weights -= self.d_l_dy_pred * node.node_partials * node.weight_partials
@@ -248,35 +244,38 @@ class NeuralNetwork:
                     weight_deriv = np.append(weight_deriv, sigmoid_prime(node.weights[i]))
                 scalars = np.append(scalars, np.dot(weight_deriv, layer_in_front.errors_vec))
             # derivatives of inputs * inputs * correct scalar = delta_w
-            #print('inputs', type(inputs))
-            #print('partials', type(node.node_partials))
-            #print('scalars', type(scalars[node_number]))
+            # print('inputs', type(inputs))
+            # print('partials', type(node.node_partials))
+            # print('scalars', type(scalars[node_number]))
             delta_w = node.input_vec * node.node_partials * scalars[node_number]
             node.weights += delta_w
+        # print('node('+str(layer_number)+', ' + str(node_number) + ': ', node.weights)
         return
 
-
     # where all the weights get updated
-    def backprop_network(self, data, true, learn_rate, cycles):
+    def backprop_network(self, data, true):
         # self.d_l_dy_pred = -2 * (true - self.output_vec) # size 3
-        for i in range(0, cycles):
-            # self.learning_multiplier = learn_rate * self.d_l_dy_pred
-            self.error = true - self.feedforward_network(data)
-            self.layers[-1].errors_vec = self.error
-            print(self.error)
-            for layerIdx in range(len(self.layers) - 1, 0, -1):
-                current_layer = self.layers[layerIdx]
+        # self.learning_multiplier = learn_rate * self.d_l_dy_pred
+        self.error = true - self.feedforward_network(data)
+        self.layers[-1].errors_vec = self.error
+        for layerIdx in range(len(self.layers) - 1, 0, -1):
+            current_layer = self.layers[layerIdx]
+            if layerIdx <= len(self.layers) - 2:
+                current_layer.layer_error(self.layers[layerIdx + 1])
+            current_layer.backprop_layer()
+            for nodeIdx in range(0, current_layer.get_num_nodes()):  # output: loops 012 # next in: loops 0123
                 if layerIdx <= len(self.layers) - 2:
                     current_layer.layer_error(self.layers[layerIdx + 1])
-                current_layer.backprop_layer()
-                for nodeIdx in range(0, current_layer.get_num_nodes()):  # output: loops 012 # next in: loops 0123
-                    if layerIdx <= len(self.layers) - 2:
-                        current_layer.layer_error(self.layers[layerIdx + 1])
-                        self.update_node_weights(current_layer.nodes[nodeIdx], nodeIdx,
+                    self.update_node_weights(current_layer.nodes[nodeIdx], nodeIdx,
                                              layerIdx, self.layers[layerIdx + 1])
-                    else:
-                        self.update_node_weights(current_layer.nodes[nodeIdx], nodeIdx,
-                                                 layerIdx)
+                else:
+                    self.update_node_weights(current_layer.nodes[nodeIdx], nodeIdx,
+                                             layerIdx)
+
+    def train(self, dataset, true_set, epoch=1000, learn_rate=0.1):
+        for i in range(epoch):
+            for data, true in zip(dataset, true_set):
+                self.backprop_network(data, true)
 
 
 def create_layers(inputs, outputs, nodes_per_layer):
@@ -299,15 +298,38 @@ def network(inputs, outputs, nodes_per_layer, activation):
     layers = create_layers(inputs, outputs, nodes_per_layer)
     create_nodes(layers, activation)
     network = NeuralNetwork(layers)
-    #network.feedforward_network(np.array([-3.0, -3.0]))
+    # network.feedforward_network(np.array([-3.0, -3.0]))
     data = np.array([-5.2, 3.1, 3.2, 6])
     true = np.array([.76, .311, .122])
     learn_rate = 0.1
     cycles = 1000
-    network.backprop_network(data, true, learn_rate, cycles)
-    print(network.feedforward_network(data))
+    # network.backprop_network(data, true, learn_rate, cycles)
+    # print(network.feedforward_network(data))
 
+    # Define dataset
+    data = np.array([
+        [-2, -1],  # Alice
+        [25, 6],  # Bob
+        [17, 4],  # Charlie
+        [-15, -6],  # Diana
+    ])
+    all_y_trues = np.array([
+        np.array([1, 1]),  # Alice
+        np.array([0, 0]),  # Bob
+        np.array([0, 0]),  # Charlie
+        np.array([1, 1]),  # Diana
+    ])
+
+    emily = np.array([-7, -3])  # 128 pounds, 63 inches
+    frank = np.array([20, 2])  # 155 pounds, 68 inches
+
+    print("Emily:", network.feedforward_network(emily))  # 0.951 - F
+    print("Frank:", network.feedforward_network(frank))  # 0.039 - M
+    network.train(data, all_y_trues, 25000, 2)
+
+    print("Emily:", network.feedforward_network(emily))  # 0.951 - F
+    print("Frank:", network.feedforward_network(frank))  # 0.039 - M
 
 
 # network(inputs=3, outputs=1, nodes_per_layer=(2,), activation="sigmoid")
-network(inputs=4, outputs=3, nodes_per_layer=(3, 5, 2, 4, 3), activation="sigmoid")
+network(inputs=2, outputs=2, nodes_per_layer=(2,), activation="sigmoid")
