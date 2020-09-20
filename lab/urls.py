@@ -9,6 +9,7 @@ urlpatterns = [
     path(r'loading/', views.loading, name='loading_page'),
     path(r'main/', views.main_page, name='main_page'),
     path(r'post_func_type/', views.post_function_type, name='post_func_type'),
+    path(r'post_number_inputs/', views.post_number_inputs, name='post_number_inputs'),
     path(r'backend_call/', views.backend_call, name='backend_call'),
     path(r'backend_call_func/', views.backend_request_function, name='backend_request_function'),
 ]
