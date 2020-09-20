@@ -147,7 +147,8 @@
 {% endblock %}
 
 {% block body %}
-    <aside id="sidebar-ele" class="sidebar pos-absolute z-2" data-role="sidebar" data-toggle="#sidebar-toggle-2"
+    <aside id="sidebar-ele" class="sidebar pos-absolute z-2 fixed-wrapper" data-role="sidebar"
+           data-toggle="#sidebar-toggle-2"
            data-shift=".shifted-content">
         <div class="sidebar-header" data-image="{% static 'lab/sidebar.jpg' %}">
             <span class="title fg-white">My Interactive Neural Network Lab</span>
@@ -241,23 +242,33 @@
             </div>
         </div>
     </div>
-    <div class="row">
+
+    <nav class="navbar navbar-light bg-light">
         <div class="shifted-content">
-            <button class="btn btn-primary ml-5 m-3 theme-btn" id="sidebar-toggle-2">
+            <a class="navbar-brand" href="{% url 'lab:home_page' %}">
+                <img src="{% static 'lab/MINN_Lab_No_text.png' %}" width="64" height="64"
+                     class="d-inline-block align-top" alt="" loading="lazy"/>
+                <span style="position: relative; top:12px">
+                    MINN Lab
+                </span>
+            </a>
+            <button class="btn btn-primary mt-6 m-3 theme-btn" id="sidebar-toggle-2">
                 <span class="mif-menu"></span>
             </button>
         </div>
+
         <button type="button" class="btn btn-primary ml-auto my-3 px-5 mr-5 theme-btn" data-toggle="modal"
                 data-target="#dataModal">
             Example Data and Implementation
         </button>
-        <button type="button" class="btn btn-primary ml-auto my-3 px-5 mr-5 theme-btn" data-toggle="modal"
+        <button type="button" class="btn btn-primary ml-2 my-3 px-5 mr-5 theme-btn" data-toggle="modal"
                 data-target="#aboutModal">
             About
         </button>
-    </div>
+        </div>
+    </nav>
     <button class="btn btn-primary copy m-3 theme-btn" type="button" data-clipboard-target="#code"
-            style="position:fixed;top:92.5%; left:90%;z-index: 2">Copy to
+            style="position:fixed;top:92.5vh; left:82.5vw;z-index: 2">Copy to
         Clipboard
     </button>
     <div class="shifted-content">

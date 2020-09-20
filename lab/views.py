@@ -28,6 +28,11 @@ def main_page(request):
                                  'Swish': 5, 'Linear': 6, 'Binary': 7}
     }
     return render(request, 'lab/main.html', context)
+def activations(request):
+    context = {
+        'title': 'Activations'
+    }
+    return render(request, 'lab/activation_func_explained.html', context)
 
 
 def loading(request):

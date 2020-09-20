@@ -1,0 +1,106 @@
+{% extends 'lab/base.html' %}
+{% load static %}
+{% block header %}
+{% endblock %}
+
+{% block body %}
+    <nav class="navbar navbar-light bg-light">
+        <a class="navbar-brand" href="{% url 'lab:home_page' %}">
+            <img src="{% static 'lab/MINN_Lab_No_text.png' %}" width="64" height="64"
+                 class="d-inline-block align-top" alt="" loading="lazy">
+            <span style="position: relative; top:16px">
+                MINN Lab
+            </span>
+        </a>
+    </nav>
+    <div class="container">
+        <div class="row">
+            <h1 class="mx-auto"><span style="color: #6f9c3d;"><strong>More on Activation Functions</strong></span></h1>
+            <p>&nbsp;</p>
+            <p><span style="font-weight: 400;">Activation functions come in many sizes and shapes! Not all of these look like your everyday function you&rsquo;d see in Algebra class. </span><strong>Not
+                all activation functions will/can be covered here. </strong><span style="font-weight: 400;">This is just a brief overview of a couple so you have an understanding of where pros and cons can be drawn from.</span>
+            </p>
+        </div>
+        <p>&nbsp;</p>
+        <div class="row">
+            <div class="col-lg-6">
+                <h2><span style="font-weight: 400; color: #ff6600;">Sigmoid -</span></h2>
+                <img src="{% static 'lab/sigmoid_graph.png' %}">
+                <p><strong>Pros:</strong></p>
+                <ul>
+                    <li style="font-weight: 400;"><span
+                            style="font-weight: 400;">Fantastic for binary classification</span>
+                    </li>
+                    <li style="font-weight: 400;"><span style="font-weight: 400;">0-1 range</span></li>
+                </ul>
+                <p><strong>Cons:</strong></p>
+                <ul>
+                    <li style="font-weight: 400;"><span style="font-weight: 400;">Slope value can negatively affect learning speed</span>
+                    </li>
+                </ul>
+                <p>&nbsp;</p>
+                <h2><span style="font-weight: 400; color: #ff6600;">Tanh -</span></h2>
+                <img src="{% static 'lab/tanh_graph.png' %}">
+                <p><strong>Pros:</strong></p>
+                <ul>
+                    <li style="font-weight: 400;"><span
+                            style="font-weight: 400;">Output is &ldquo;zero-centered&rdquo;</span>
+                    </li>
+                    <li style="font-weight: 400;"><span
+                            style="font-weight: 400;">Very optimized compared to sigmoid</span></li>
+                </ul>
+                <p><strong>Cons:</strong></p>
+                <ul>
+                    <li style="font-weight: 400;"><span
+                            style="font-weight: 400;">Typically only used within the hidden layers</span></li>
+                    <li style="font-weight: 400;"><span style="font-weight: 400;">Has the &ldquo;vanishing gradient&rdquo; issue - no learning at flatter slopes</span>
+                    </li>
+                </ul>
+                <p>&nbsp;</p>
+                <h2><span style="font-weight: 400; color: #ff6600;">ReLU -</span></h2>
+                <img src="{% static 'lab/relu_graph.png' %}">
+                <p><strong>Pros:</strong></p>
+                <ul>
+                    <li style="font-weight: 400;"><span style="font-weight: 400;">Very fast computation</span></li>
+                    <li style="font-weight: 400;"><span style="font-weight: 400;">Avoids the vanishing gradient</span>
+                    </li>
+                </ul>
+                <p><strong>Cons:</strong></p>
+                <ul>
+                    <li style="font-weight: 400;"><span style="font-weight: 400;">Should only be used in the hidden layers of the network</span>
+                    </li>
+                    <li style="font-weight: 400;"><span style="font-weight: 400;">Neurons can become &ldquo;dead,&rdquo; where they always have a derivative of 0</span>
+                    </li>
+                </ul>
+                <p>&nbsp;</p>
+            </div>
+            <div class="col-lg-6">
+                <h2><span style="font-weight: 400; color: #ff6600;">Leaky ReLU -</span></h2>
+                <img src="{% static 'lab/lrlu_graph.png' %}">
+                <p><strong>Pros:</strong></p>
+                <ul>
+                    <li style="font-weight: 400;"><span style="font-weight: 400;">Fixes issue &ldquo;dead&rdquo; neurons present in ReLU</span>
+                    </li>
+                </ul>
+                <p><strong>Cons:</strong></p>
+                <ul>
+                    <li style="font-weight: 400;"><span style="font-weight: 400;">Same as ReLU</span></li>
+                </ul>
+                <p>&nbsp;</p>
+                <h2><span style="font-weight: 400; color: #ff6600;">Binary -</span></h2>
+                <img src="{% static 'lab/binary.png' %}">
+                <p><strong>Pros:</strong></p>
+                <ul>
+                    <li style="font-weight: 400;"><span style="font-weight: 400;">Helpful in creating the &ldquo;binary classifier&rdquo;</span>
+                    </li>
+                </ul>
+                <p><strong>Cons:</strong></p>
+                <ul>
+                    <li style="font-weight: 400;"><span style="font-weight: 400;">Not efficient when working with many classes within a variable</span>
+                    </li>
+                    <li style="font-weight: 400;"><span style="font-weight: 400;">Gradient is zero for all x</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+{% endblock %}

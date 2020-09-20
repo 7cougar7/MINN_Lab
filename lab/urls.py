@@ -9,6 +9,5 @@ urlpatterns = [
     path(r'loading/', views.loading, name='loading_page'),
     path(r'main/', views.main_page, name='main_page'),
     path(r'post_script/', views.post_script, name='post_script'),
-    path(r'backend_call/', views.backend_call, name='backend_call'),
-    path(r'backend_call_func/', views.backend_request_function, name='backend_request_function'),
+    path(r'activations/', views.activations, name='activations'),
 ]
