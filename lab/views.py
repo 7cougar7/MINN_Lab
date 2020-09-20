@@ -55,8 +55,9 @@ def backend_request_function(request):
     return redirect(reverse('lab:backend_call'))
 
 
-def function_type(func_val):
+def function_type(func_val, alpha):
     int_func_val = int(func_val)
+    int_alpha_val = int(alpha)
     function_inputs = ['self.sum_val']
     deriv_function_inputs = ['node.sum_val', 'input', 'node.weights[i]']
 
@@ -64,10 +65,10 @@ def function_type(func_val):
         '0': 'def sigmoid(x):\n~return 1 / (1 + np.exp(-x))\n\ndef sigmoid_prime(x):\n~fx = sigmoid(x)\n~return fx * (1 - fx)\n',
         '1': 'def tanh(x):\n~return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))\n\ndef tanh_prime(x):\n~t = tanh(x)\n~return 1 - t ** 2\n',
         '2': 'def relu(x):\n~return max(0, x)\n\ndef relu_prime(x):\n~return 1 if x > 0 else 0\n',
-        '3': 'def parametric_relu(x, alpha=0.01):\n~return max(alpha * x, x)\n\ndef parametric_relu_prime(x, alpha=0.01):\n~return 1 if x > 0 else alpha\n',
-        '4': 'def elu(x, alpha):\n~return x if x >= 0 else alpha * (np.exp(x) - 1)\n\ndef elu_prime(x, alpha):\n~return 1 if x > 0 else alpha * np.exp(x)\n',
+        '3': 'def parametric_relu(x):\n~return max(ALPHA * x, x)\n\ndef parametric_relu_prime(x):\n~return 1 if x > 0 else ALPHA\n',
+        '4': 'def elu(x):\n~return x if x >= 0 else ALPHA * (np.exp(x) - 1)\n\ndef elu_prime(x):\n~return 1 if x > 0 else ALPHA * np.exp(x)\n',
         '5': 'def swish(x):\n~return x / (1 + np.exp(-x))\n\ndef swish_prime(x):\n~sig = sigmoid(x)\n~swi = swish(x)\n~return swi + (sig * (1 - swi))\n',
-        '6': 'def linear(x, slope):\n~return x * slope\n\ndef linear_prime(slope):\n~return slope\n',
+        '6': 'def linear(x):\n~return x * ALPHA\n\ndef linear_prime():\n~return ALPHA\n',
         '7': 'def binary(x):\n~return 1 if x > 0 else 0\n\ndef binary_prime():\n~return 0\n'
     }
 
@@ -97,43 +98,30 @@ def function_type(func_val):
     function_calls = []
     for func_input in function_inputs:
         temp_call = desired_function_call + func_input
-        if int_func_val != 5 and 3 <= int_func_val <= 6:
-            temp_call += ', alpha'  # todo fix me
-        temp_call += ')'
         function_calls.append(temp_call)
     for func_input in deriv_function_inputs:
         temp_call = desired_deriv_function_call
-        if 3 <= int_func_val <= 4:
-            temp_call += func_input + ', alpha'  # todo fix me
-        elif int_func_val != 7:
-            temp_call += func_input
+        if int_func_val == 7:
+            temp_call += ')'
+        else:
+            temp_call += func_input + ')'
         temp_call += ')'
         function_calls.append(temp_call)
 
+    function_definition = ''
+    if int_func_val == 3 or int_func_val == 4 or int_func_val == 6:
+        function_definition += 'ALPHA = ' + alpha + '\n\n'
+    function_definition += format_string(functions.get(func_val))
     functions = {
-        'function_def': format_string(functions.get(func_val)),
+        'function_def': function_definition,
         'function_calls': function_calls,
     }
     return functions
 
 
-def post_number_inputs(request):
-    response = {
-        'inputText': 'This is INPUT test. See post_function_type for example: ' + request.POST.get('inputVal', '0')
-    }
-    return JsonResponse(response)
-
-
-def post_number_outputs(request):
-    response = {
-        'outputText': 'This is OUTPUT test. See post_function_type for example: ' + request.POST.get('outputVal', '0')
-    }
-    return JsonResponse(response)
-
-
 def post_script(request):
     if request.POST:
-        functions = function_type(request.POST.get('funcVal', '0'))
+        functions = function_type(request.POST.get('funcVal', '0'), request.POST.get('alphaVal', '7'))
         network = create_network(
             inputs=int(request.POST.get('inputVal', '1')),
             outputs=int(request.POST.get('outputVal', '1')),
@@ -264,4 +252,3 @@ class NeuralNetwork:
             for data, true in zip(dataset, true_set):
                 self.backprop_network(data, true)""")
         return JsonResponse({'text': nn_code})
-

@@ -12,8 +12,11 @@
         function getScript() {
             let inputElement = $('#numInputs');
             let outputElement = $('#numOutputs');
+            let alphaElement = $('#alphaVal');
             let inputVal = parseInt(inputElement.val());
             let outputVal = parseInt(outputElement.val());
+            let alphaVal = parseInt(alphaElement.val());
+            alphaVal = Number.isInteger(alphaVal) ? alphaVal : 7
 
             if (inputVal > MAX_INPUTS_OUTPUTS) {
                 inputVal = MAX_INPUTS_OUTPUTS;
@@ -31,12 +34,13 @@
             });
 
             $.post({
-                    url: '{% url 'lab:post_scipt' %}', //TODO Change this URL
+                    url: '{% url 'lab:post_script' %}',
                     data: {
                         inputVal: Number.isInteger(inputVal) ? inputVal : 2,
                         outputVal: Number.isInteger(outputVal) ? outputVal : 2,
                         funcVal: $('#activationSelect').val(),
                         numNodesPerLayer: nodesPerLayer,
+                        alphaVal: alphaVal,
                         csrfmiddlewaretoken: '{{ csrf_token }}',
                     },
                     async: false,
@@ -66,7 +70,25 @@
             $('#nodesPerLayer').html(elements);
         }
 
+        function toggleAlpha() {
+            let element = $('#numLayers')
+            let numLayers = parseInt(element.val());
+            if (!Number.isInteger(numLayers)) {
+                numLayers = 1;
+            }
+            if (numLayers > MAX_LAYERS) {
+                numLayers = MAX_LAYERS;
+                element.val(5)
+            }
+            let elements = '';
+            for (let i = 1; i < numLayers + 1; i++) {
+                elements += '<li class="pl-10 pr-7 py-2"><label for="numLayers' + i + '">Number of Nodes for Layer ' + i + ':</label><input type="number" id="numLayers' + i + '" name="nodeLayerNum[]" placeholder="2" min="1" max="5" onchange="getScript()"></li>'
+            }
+            $('#nodesPerLayer').html(elements);
+        }
+
         $(document).ready(function () {
+            $('#alphaValItem').toggle()
             setTimeout(function () {
                 Metro.sidebar.open($('#sidebar-ele'))
             }, 250)
@@ -75,8 +97,19 @@
             $('#numLayers').on("change keyup paste", function () {
                 updateNumLayerInputs();
             })
-            $('#numInputs, #activationSelect, #numOutputs').on("change keyup paste", function () {
+            $('#numInputs, #activationSelect, #numOutputs, #alphaValItem').on("change keyup paste", function () {
                 getScript();
+            })
+            $("#activationSelect").change(function () {
+                let parsedVal = parseInt(this.value)
+                console.log(parsedVal)
+                let num =  Number.isInteger(parsedVal) ? parsedVal : 0
+                console.log(num)
+                if (num === 3 || num === 4 || num === 6) {
+                    $('#alphaValItem').show()
+                } else {
+                    $('#alphaValItem').hide()
+                }
             })
             new ClipboardJS('.copy', {
                 text: function (trigger) {
@@ -103,7 +136,10 @@
                     {% endfor %}
                 </select>
             </li>
-
+            <li class="pl-10 pr-7 py-2" id="alphaValItem">
+                <label for="alphaVal">Alpha/Slope Value:</label>
+                <input type="number" id="alphaVal" name="alphaVal" placeholder="7">
+            </li>
             <li class="pl-2 pr-7 py-2">
                 <label for="numInputs">Number of Inputs:</label>
                 <input type="number" id="numInputs" name="numInputs" placeholder="2" min="1" max="5"></li>
