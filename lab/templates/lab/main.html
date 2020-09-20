@@ -10,20 +10,23 @@
             border-color: #6f9c3d;
             border-width: 2px;
         }
+
         .theme-btn:hover {
             background-color: #6f9c3d;
             border-color: #ff8829;
             border-width: 2px;
         }
+
         .theme-btn:active {
-            background-color: #6f9c3d!important;
-            border-color: #ff8829!important;
+            background-color: #6f9c3d !important;
+            border-color: #ff8829 !important;
             border-width: 2px;
             box-shadow: 0 0 0 0.2rem #6f9c3d;
         }
+
         .theme-btn:focus {
-            background-color: #6f9c3d!important;
-            border-color: #ff8829!important;
+            background-color: #6f9c3d !important;
+            border-color: #ff8829 !important;
             border-width: 2px;
             box-shadow: 0 0 0 0.2rem #6f9c3d;
         }
@@ -150,7 +153,7 @@
             <span class="title fg-white">My Interactive Neural Network Lab</span>
             <span class="subtitle fg-white">HackMIT 2020</span>
         </div>
-        <ul class="sidebar-menu">
+        <ul class="sidebar-menu px-3">
             <li class="pl-2 pr-7 py-2">
                 <label for="activationSelect">Activation Function:</label>
                 <select name="activationFunc" id="activationSelect">
@@ -177,7 +180,7 @@
         </ul>
     </aside>
     <div class="modal" id="aboutModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">About</h5>
@@ -215,19 +218,48 @@
             </div>
         </div>
     </div>
+    <div class="modal" id="dataModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Example Data and Implementation</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <h4>Copy this directly into your code!</h4>
+                        <button class="btn btn-primary copy ml-auto mr-5 theme-btn" type="button"
+                                data-clipboard-target="#dataExample">Copy Example to
+                            Clipboard
+                        </button>
+                    </div>
+
+                    <pre id="dataExample">'''Now it's your turn! Below is some example code showing how you could possibly implement<br/>input data into your neural network. The code below only works for a neural network with 2 inputs,<br/>1 output, and 1 hidden layer with 2 nodes. Have fun messing around with this implementation!<br/>Then, come up with your own data and train a neural network of whatever size you want!'''<br/><br/>gender_prediction_network = NeuralNetwork()  # Create a neural network called network<br/><br/>input_data = np.array([  # Create input data with 4 entries. <br/>                         #Each entry is an individuals height and weight, offset by a constant<br/>    [-3, -1],  # Sarah<br/>    [26, 4],  # Joseph<br/>    [19, 6],  # Connor<br/>    [-13, -7],  # Helen<br/>])<br/><br/>all_y_trues = np.array([  # Create array of true values of outputs<br/>                          # The size of the true vector should be equal to the amount of input sets<br/>    np.array([1]),  # Sarah<br/>    np.array([0]),  # Joseph<br/>    np.array([0]),  # Connor<br/>    np.array([1]),  # Helen<br/>])<br/><br/>Cecilia = np.array([-5, -2])  # Test data to test the validity of our network<br/>Isaac = np.array([22, 3])  # Test data to test the validity of our network<br/><br/>print("Cecilia:", gender_prediction_network.feedforward_network(Cecilia))  # Print the outputs before training<br/>print("Isaac:", gender_prediction_network.feedforward_network(Isaac))<br/><br/>gender_prediction_network.train(input_data, all_y_trues, 5000)  # Train the network, with 5000 iterations<br/><br/>print("Cecilia:", gender_prediction_network.feedforward_network(Cecilia))  # Print the outputs after training<br/>print("Isaac:", gender_prediction_network.feedforward_network(Isaac))</pre>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="row">
         <div class="shifted-content">
             <button class="btn btn-primary ml-5 m-3 theme-btn" id="sidebar-toggle-2">
                 <span class="mif-menu"></span>
             </button>
-            <button class="btn btn-primary copy m-3 theme-btn" type="button" data-clipboard-target="#code">Copy to Clipboard
-            </button>
         </div>
+        <button type="button" class="btn btn-primary ml-auto my-3 px-5 mr-5 theme-btn" data-toggle="modal"
+                data-target="#dataModal">
+            Example Data and Implementation
+        </button>
         <button type="button" class="btn btn-primary ml-auto my-3 px-5 mr-5 theme-btn" data-toggle="modal"
                 data-target="#aboutModal">
             About
         </button>
     </div>
+    <button class="btn btn-primary copy m-3 theme-btn" type="button" data-clipboard-target="#code"
+            style="position:fixed;top:92.5%; left:90%;z-index: 2">Copy to
+        Clipboard
+    </button>
     <div class="shifted-content">
         <div>
             <pre>
