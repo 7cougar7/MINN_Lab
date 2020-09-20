@@ -35,6 +35,7 @@
     <script>
         let MAX_LAYERS = 5;
         let MAX_INPUTS_OUTPUTS = 5;
+        let MAX_NODES_PER_LAYER = 8;
         let currentScript = "";
 
         function getScript() {
@@ -58,7 +59,12 @@
 
             let nodesPerLayer = []
             $('input[name="nodeLayerNum[]"]').each(function () {
-                nodesPerLayer.push(Number.isInteger(parseInt($(this).val())) ? parseInt($(this).val()) : 2)
+                let parsedInt = parseInt($(this).val())
+                if (Number.isInteger(parsedInt)) {
+                    nodesPerLayer.push(parsedInt)
+                } else {
+                    nodesPerLayer.push(2)
+                }
             });
 
             $.post({
@@ -93,26 +99,21 @@
             }
             let elements = '';
             for (let i = 1; i < numLayers + 1; i++) {
-                elements += '<li class="pl-10 pr-7 py-2"><label for="numLayers' + i + '">Number of Nodes for Layer ' + i + ':</label><input type="number" id="numLayers' + i + '" name="nodeLayerNum[]" placeholder="2" min="1" max="5" onchange="getScript()"></li>'
+                elements += '<li class="pl-10 pr-7 py-2"><label for="numLayers' + i + '">Number of Nodes for Layer ' + i + ':</label><input type="number" id="numLayers' + i + '" name="nodeLayerNum[]" class= "numLayers" placeholder="2" min="1" max="5"></li>'
             }
             $('#nodesPerLayer').html(elements);
+
+            $('.numLayers').on("change keyup paste", function () {
+                validateNodeLayers(this)
+                getScript()
+            })
         }
 
-        function toggleAlpha() {
-            let element = $('#numLayers')
-            let numLayers = parseInt(element.val());
-            if (!Number.isInteger(numLayers)) {
-                numLayers = 1;
+        function validateNodeLayers(element) {
+            let parsedInt = parseInt($(element).val())
+            if (parsedInt > MAX_NODES_PER_LAYER) {
+                $(element).val(MAX_NODES_PER_LAYER)
             }
-            if (numLayers > MAX_LAYERS) {
-                numLayers = MAX_LAYERS;
-                element.val(5)
-            }
-            let elements = '';
-            for (let i = 1; i < numLayers + 1; i++) {
-                elements += '<li class="pl-10 pr-7 py-2"><label for="numLayers' + i + '">Number of Nodes for Layer ' + i + ':</label><input type="number" id="numLayers' + i + '" name="nodeLayerNum[]" placeholder="2" min="1" max="5" onchange="getScript()"></li>'
-            }
-            $('#nodesPerLayer').html(elements);
         }
 
         $(document).ready(function () {
@@ -152,7 +153,7 @@
            data-shift=".shifted-content">
         <div class="sidebar-header" data-image="{% static 'lab/sidebar.jpg' %}">
             <span class="title fg-white">My Interactive Neural Network Lab</span>
-            <span class="subtitle fg-white">HackMIT 2020</span>
+            <span class="subtitle fg-white">Marc Abdallah, Tilo Garcia, Zachary Smith<br>HackMIT 2020</span>
         </div>
         <ul class="sidebar-menu px-3">
             <li class="pl-2 pr-7 py-2">
@@ -204,7 +205,8 @@
                             style="font-weight: 400;">.</span></p>
                     <p>&nbsp;</p>
                     <h2><span style="color: #6f9c3d;"><strong>What is an activation function?</strong></span></h2>
-                    <p><span style="font-weight: 400;">An activation function is what the node uses to make its prediction. Like any other function, the activation function takes an input and produces an output. Different types of activation functions can have different effects on the outcome of the neural network.&nbsp;</span>
+                    <p><span style="font-weight: 400;">An activation function is what the node uses to make its prediction. Like any other function, the activation function takes an input and produces an output. Different types of activation functions can have different effects on the outcome of the neural network. <a
+                            href="{% url 'lab:activations' %}" target="_blank">Learn more here</a> &nbsp;</span>
                     </p>
                     <p>&nbsp;</p>
                     <h2><span style="color: #6f9c3d;"><strong>What is MINNLab?</strong></span></h2>
@@ -230,7 +232,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <h4>Copy this directly into your code!</h4>
+                        <h4>Copy this at the end of the neural network code!</h4>
                         <button class="btn btn-primary copy ml-auto mr-5 theme-btn" type="button"
                                 data-clipboard-target="#dataExample">Copy Example to
                             Clipboard
@@ -268,7 +270,7 @@
         </div>
     </nav>
     <button class="btn btn-primary copy m-3 theme-btn" type="button" data-clipboard-target="#code"
-            style="position:fixed;top:92.5vh; left:82.5vw;z-index: 2">Copy to
+            style="position:fixed;top:90vh; left:82.5vw;z-index: 2">Copy to
         Clipboard
     </button>
     <div class="shifted-content">
