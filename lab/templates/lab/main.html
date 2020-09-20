@@ -2,55 +2,97 @@
 {% load static %}
 
 {% block header %}
-    <link rel="stylesheet" href="{% static 'lab/prism.css' %}">
-    <script src="{% static 'lab/prism.js' %}"></script>
+        <link rel="stylesheet" href="{% static 'lab/prism.css' %}">
+        <script src="{% static 'lab/prism.js' %}"></script>
     <script>
-    {#window.Prism = window.Prism || {};#}
-    {#Prism.manual = true#}
+        {#window.Prism = window.Prism || {};#}
+        {#Prism.manual = true#}
+        let MAX_LAYERS = 5;
+
         function getFunctionType() {
-            let funcVal = $('#activationSelect').val();
             $.post({
                     url: '{% url 'lab:post_func_type' %}',
                     data: {
-                        funcVal: funcVal,
+                        funcVal: $('#activationSelect').val(),
                         csrfmiddlewaretoken: '{{ csrf_token }}',
                     },
+                    async: true,
                     success: function (data) {
                         $("#activation-function").text(data.functionCode)
                     }
                 }
             )
             {#Prism.highlightAllUnder($('pre'))#}
-            console.log()
-            Prism.highlightAll()
+            {#Prism.highlightElement($('.language-python1')[0], false)#}
+            {#console.log(Prism)#}
+        }
+
+        function getInputText() {
+            let inputVal = parseInt($('#numInputs').val());
+            $.post({
+                    url: '{% url 'lab:post_number_inputs' %}',
+                    data: {
+                        inputVal: Number.isInteger(inputVal) ? inputVal : 0,
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    },
+                    async: true,
+                    success: function (data) {
+                        $("#number-input-text").text(data.inputText)
+                    }
+                }
+            )
+            {#Prism.highlightAllUnder($('pre'))#}
+            Prism.highlightElement($('.language-python1')[0], false)
+            {#console.log(Prism)#}
+        }
+
+        function updateNumLayerInputs() {
+            let element = $('#numLayers')
+            let numLayers = parseInt(element.val());
+            if (!Number.isInteger(numLayers)) {
+                numLayers = 1;
+            }
+            if (numLayers > MAX_LAYERS) {
+                numLayers = MAX_LAYERS;
+                element.val(5)
+            }
+            let elements = '';
+            for (let i = 1; i < numLayers + 1; i++) {
+                elements += '<li class="pl-10 pr-7 py-2"><label for="numOutputs">Number of Nodes for Layer ' + i + ':</label><input type="number" id="numLayers' + i + '" name="numLayers" placeholder="2" min="1" max="5"></li>'
+            }
+            $('#nodesPerLayer').html(elements);
         }
 
         $(document).ready(function () {
-            let numLayersInput = $('#numLayers');
+            setTimeout(function () {
+                Metro.sidebar.open($('#sidebar-ele'))
+            }, 250)
             getFunctionType()
-            numLayersInput.on("change keyup paste", function () {
-                let numLayers = parseInt($(this).val());
-                if (!Number.isInteger(numLayers)) {
-                    numLayers = 0;
-                }
-                $('#nodesPerLayer').html('<p>You have typed: ' + numLayers + '</p>');
+            updateNumLayerInputs()
+            getInputText()
+            $('#numLayers').on("change keyup paste", function () {
+                updateNumLayerInputs();
             })
             $('#activationSelect').change(function () {
-                getFunctionType()
+                getFunctionType();
+            })
+            $('#numInputs').on("change keyup paste", function () {
+                getInputText();
             })
         })
     </script>
 {% endblock %}
 
 {% block body %}
-    <aside class="sidebar pos-absolute z-2" data-role="sidebar" data-toggle="#sidebar-toggle-2"
+    <aside id="sidebar-ele" class="sidebar pos-absolute z-2" data-role="sidebar" data-toggle="#sidebar-toggle-2"
            data-shift=".shifted-content">
         <div class="sidebar-header" data-image="{% static 'lab/sidebar.jpg' %}">
-            <span class="title fg-white">My Interactice Neural Network Lab</span>
+            <span class="title fg-white">My Interactive Neural Network Lab</span>
             <span class="subtitle fg-white">HackMIT 2020</span>
         </div>
         <ul class="sidebar-menu">
             <li class="pl-2 pr-7 py-2">
+                <label for="activationSelect">Activation Function:</label>
                 <select name="activationFunc" id="activationSelect">
                     {% for func, val in activation_functions.items %}
                         <option value="{{ val }}">{{ func }}</option>
@@ -58,16 +100,17 @@
                 </select>
             </li>
 
-            <li class="pl-2 pr-7 py-2"><label for="numInput">Number of Inputs:</label></li>
-            <li class="pl-2 pr-7 py-2"><input type="number" id="numInput" name="numInput" placeholder="Number of Inputs"
-                                              min="1" max="5"></li>
-            <li class="pl-2 pr-7 py-2"><input type="number" id="numOutputs" name="numOutputs"
-                                              placeholder="Number of Outputs" min="1" max="5"></li>
-            <li class="pl-2 pr-7 py-2"><input type="number" id="numLayers" name="numLayers"
-                                              placeholder="Number of Layers" min="1" max="5"></li>
             <li class="pl-2 pr-7 py-2">
-                <div id="nodesPerLayer"></div>
+                <label for="numInputs">Number of Inputs:</label>
+                <input type="number" id="numInputs" name="numInputs" placeholder="2" min="1" max="5"></li>
+            <li class="pl-2 pr-7 py-2">
+                <label for="numOutputs">Number of Outputs:</label>
+                <input type="number" id="numOutputs" name="numOutputs" placeholder="2" min="1" max="5"></li>
+            <li class="pl-2 pr-7 py-2">
+                <label for="numOutputs">Number of Hidden Layers:</label>
+                <input type="number" id="numLayers" name="numLayers" placeholder="1" min="1" max="5">
             </li>
+            <div id="nodesPerLayer"></div>
         </ul>
     </aside>
     <div class="shifted-content">
@@ -76,8 +119,50 @@
         </button>
         <div>
             <pre>
-                <code class="language-python">
 <code class="language-python" id="activation-function"></code>
+            </pre>
+            <pre>
+<code class="language-python" id="number-input-text"></code>
+            </pre>
+            <pre>
+                <code class="language-python1">
+class Neuron:
+    def __init__(self, number_of_weights, activation="sigmoid"):
+        self.number_of_weights = number_of_weights
+        self.input_vec = 0
+        self.activation_val = 0
+        self.weights = np.random.rand(number_of_weights)
+        self.biases = np.random.rand()
+        self.learn_rates = None
+        self.weight_partials = None
+        self.node_partials = None
+        self.bias_partial = None
+
+    def feedforward(self, inputs):
+        # Weight inputs, add bias, and use activation function
+        self.input_vec = inputs
+        self.sum_val = np.dot(self.weights, inputs) + self.biases
+        # FIXME self.activation_val = activation(self.sum_val)
+        self.sigmoid_val = sigmoid(self.sum_val)
+        return self.sigmoid_val
+
+    def get_weight(self, index):
+        return self.weights[index]
+
+    def get_weights(self):
+        return self.weights
+
+    def set_weight(self, index, value):
+        self.weights[index] = value
+
+    def backprop_node(self, deriv):
+        # FIXME
+        # pred = node.sigmoid_val
+        self.bias_partial = deriv
+        self.weight_partials = np.array(self.input_vec) * deriv
+        self.node_partials = self.get_weights() * deriv
+        return
+
 class Layer:
     def __init__(self, num_nodes):
         self.num_nodes = num_nodes
