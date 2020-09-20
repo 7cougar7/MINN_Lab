@@ -73,6 +73,13 @@ def post_function_type(request):
 
 def post_number_inputs(request):
     response = {
-        'inputText': 'This is filler test. See post_function_type for example: ' + request.POST.get('inputVal', '0')
+        'inputText': 'This is INPUT test. See post_function_type for example: ' + request.POST.get('inputVal', '0')
+    }
+    return JsonResponse(response)
+
+
+def post_number_outputs(request):
+    response = {
+        'outputText': 'This is OUTPUT test. See post_function_type for example: ' + request.POST.get('outputVal', '0')
     }
     return JsonResponse(response)

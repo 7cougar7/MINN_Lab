@@ -8,6 +8,7 @@
         {#window.Prism = window.Prism || {};#}
         {#Prism.manual = true#}
         let MAX_LAYERS = 5;
+        let MAX_INPUTS_OUTPUTS = 5;
 
         function getFunctionType() {
             $.post({
@@ -24,25 +25,6 @@
             )
             {#Prism.highlightAllUnder($('pre'))#}
             {#Prism.highlightElement($('.language-python1')[0], false)#}
-            {#console.log(Prism)#}
-        }
-
-        function getInputText() {
-            let inputVal = parseInt($('#numInputs').val());
-            $.post({
-                    url: '{% url 'lab:post_number_inputs' %}',
-                    data: {
-                        inputVal: Number.isInteger(inputVal) ? inputVal : 0,
-                        csrfmiddlewaretoken: '{{ csrf_token }}',
-                    },
-                    async: true,
-                    success: function (data) {
-                        $("#number-input-text").text(data.inputText)
-                    }
-                }
-            )
-            {#Prism.highlightAllUnder($('pre'))#}
-            Prism.highlightElement($('.language-python1')[0], false)
             {#console.log(Prism)#}
         }
 
@@ -63,6 +45,56 @@
             $('#nodesPerLayer').html(elements);
         }
 
+        function getInputText() {
+            let inputElement = $('#numInputs');
+            let inputVal = parseInt(inputElement.val());
+
+            if (inputVal > MAX_INPUTS_OUTPUTS) {
+                inputVal = MAX_INPUTS_OUTPUTS;
+                inputElement.val(MAX_INPUTS_OUTPUTS)
+            }
+            $.post({
+                    url: '{% url 'lab:post_number_inputs' %}',
+                    data: {
+                        inputVal: Number.isInteger(inputVal) ? inputVal : 1,
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    },
+                    async: true,
+                    success: function (data) {
+                        $("#number-input-text").text(data.inputText)
+                    }
+                }
+            )
+            {#Prism.highlightAllUnder($('pre'))#}
+            {#Prism.highlightElement($('.language-python1')[0], false)#}
+            {#console.log(Prism)#}
+        }
+
+        function getOutputText() {
+            let inputElement = $('#numOutputs');
+            let inputVal = parseInt(inputElement.val());
+
+            if (inputVal > MAX_INPUTS_OUTPUTS) {
+                inputVal = MAX_INPUTS_OUTPUTS;
+                inputElement.val(MAX_INPUTS_OUTPUTS)
+            }
+            $.post({
+                    url: '{% url 'lab:post_number_inputs' %}',
+                    data: {
+                        inputVal: Number.isInteger(inputVal) ? inputVal : 1,
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    },
+                    async: true,
+                    success: function (data) {
+                        $("#number-output-text").text(data.inputText)
+                    }
+                }
+            )
+            {#Prism.highlightAllUnder($('pre'))#}
+            {#Prism.highlightElement($('.language-python1')[0], false)#}
+            {#console.log(Prism)#}
+        }
+
         $(document).ready(function () {
             setTimeout(function () {
                 Metro.sidebar.open($('#sidebar-ele'))
@@ -78,6 +110,9 @@
             })
             $('#numInputs').on("change keyup paste", function () {
                 getInputText();
+            })
+            $('#numOutputs').on("change keyup paste", function () {
+                getOutputText();
             })
         })
     </script>
@@ -102,7 +137,7 @@
 
             <li class="pl-2 pr-7 py-2">
                 <label for="numInputs">Number of Inputs:</label>
-                <input type="number" id="numInputs" name="numInputs" placeholder="2" min="1" max="5"></li>
+                <input type="number" id="numInputs" name="numInputs" placeholder="1" min="1" max="5"></li>
             <li class="pl-2 pr-7 py-2">
                 <label for="numOutputs">Number of Outputs:</label>
                 <input type="number" id="numOutputs" name="numOutputs" placeholder="2" min="1" max="5"></li>
@@ -123,6 +158,9 @@
             </pre>
             <pre>
 <code class="language-python" id="number-input-text"></code>
+            </pre>
+            <pre>
+<code class="language-python" id="number-output-text"></code>
             </pre>
             <pre>
                 <code class="language-python1">
