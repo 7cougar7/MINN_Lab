@@ -3,6 +3,31 @@
 
 {% block header %}
     <link rel="stylesheet" href="{% static 'lab/prism.css' %}">
+    <style>
+        .theme-btn {
+            background-color: #ff8829;
+            color: black;
+            border-color: #6f9c3d;
+            border-width: 2px;
+        }
+        .theme-btn:hover {
+            background-color: #6f9c3d;
+            border-color: #ff8829;
+            border-width: 2px;
+        }
+        .theme-btn:active {
+            background-color: #6f9c3d!important;
+            border-color: #ff8829!important;
+            border-width: 2px;
+            box-shadow: 0 0 0 0.2rem #6f9c3d;
+        }
+        .theme-btn:focus {
+            background-color: #6f9c3d!important;
+            border-color: #ff8829!important;
+            border-width: 2px;
+            box-shadow: 0 0 0 0.2rem #6f9c3d;
+        }
+    </style>
     <script src="{% static 'lab/prism.js' %}"></script>
     <script>
         let MAX_LAYERS = 5;
@@ -102,9 +127,7 @@
             })
             $("#activationSelect").change(function () {
                 let parsedVal = parseInt(this.value)
-                console.log(parsedVal)
-                let num =  Number.isInteger(parsedVal) ? parsedVal : 0
-                console.log(num)
+                let num = Number.isInteger(parsedVal) ? parsedVal : 0
                 if (num === 3 || num === 4 || num === 6) {
                     $('#alphaValItem').show()
                 } else {
@@ -153,11 +176,59 @@
             <div id="nodesPerLayer"></div>
         </ul>
     </aside>
-    <div class="shifted-content">
-        <button class="button square pos-top-left" id="sidebar-toggle-2">
-            <span class="mif-menu"></span>
+    <div class="modal" id="aboutModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">About</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h2><span style="color: #6f9c3d;"><strong>What is a neural network?</strong></span></h2>
+                    <p><span style="color: #000000;"><span style="font-weight: 400;">A </span><span
+                            style="color: #ff8829;"><em><span
+                            style="font-weight: 400;">neural network</span></em></span><span style="font-weight: 400;"> is a web of nodes that takes a set of data and uses the data to predict certain outputs. By providing the network with data with known outputs, the neural network can be trained to create more accurate predictions from new data.</span></span>
+                    </p>
+                    <p><span style="color: #000000;">&nbsp;</span></p>
+                    <h2><span style="color: #6f9c3d;"><strong>How does a neural network work?</strong></span></h2>
+                    <p><span style="font-weight: 400;">A neural network works by creating a web of nodes with a certain number of inputs, outputs, and hidden layers. Each hidden layer can have its own amount of nodes. Each node in a layer is connected to all of the nodes in the proceeding layer. These connections are defined by values called </span><span
+                            style="color: #ff8829;"><em><span style="font-weight: 400;">weights</span></em></span><span
+                            style="font-weight: 400;">. These weights, which are a number between 0 and 1, work together to make the final output be as accurate as possible. Adjusting the weights over a large amount of trials is how the neural network &ldquo;learns.&rdquo; Each node performs an operation called an</span><span
+                            style="color: #ff8829;"><em><span style="font-weight: 400;"> activation function</span></em></span><span
+                            style="font-weight: 400;">.</span></p>
+                    <p>&nbsp;</p>
+                    <h2><span style="color: #6f9c3d;"><strong>What is an activation function?</strong></span></h2>
+                    <p><span style="font-weight: 400;">An activation function is what the node uses to make its prediction. Like any other function, the activation function takes an input and produces an output. Different types of activation functions can have different effects on the outcome of the neural network.&nbsp;</span>
+                    </p>
+                    <p>&nbsp;</p>
+                    <h2><span style="color: #6f9c3d;"><strong>What is MINNLab?</strong></span></h2>
+                    <p><span style="font-weight: 400;"><span style="color: #ff8829;"><em>MINNLab</em></span> (My Interactive Neural Network Lab), is a website that helps programmers write their first neural network! Given inputs from the user, MINNLab writes code for a neural network in Python that you can implement into your own machine learning software.</span>
+                    </p>
+                    <p>&nbsp;</p>
+                    <h2><span style="color: #6f9c3d;"><strong>How do I use MINNLab?</strong></span></h2>
+                    <p><span style="font-weight: 400;">To use MINNLab, interact with the side panel to decide on the number of input, output, and hidden layer nodes that you want your neural network to have. Then, decide on the activation function you want to use in your network. Then, watch the magic happen as MINNLab writes Python code before your very eyes! Click on the<strong> <span
+                            style="color: #fe6b40;">&lsquo;Copy to Clipboard&rsquo;</span></strong> button to copy and then paste the result code into whatever application you want. Provide your own data, and voila! You have your own neural network!&nbsp;</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="shifted-content">
+            <button class="btn btn-primary ml-5 m-3 theme-btn" id="sidebar-toggle-2">
+                <span class="mif-menu"></span>
+            </button>
+            <button class="btn btn-primary copy m-3 theme-btn" type="button" data-clipboard-target="#code">Copy to Clipboard
+            </button>
+        </div>
+        <button type="button" class="btn btn-primary ml-auto my-3 px-5 mr-5 theme-btn" data-toggle="modal"
+                data-target="#aboutModal">
+            About
         </button>
-        <button class="button pos-top-left copy" type="button" data-clipboard-target="#code">Copy</button>
+    </div>
+    <div class="shifted-content">
         <div>
             <pre>
                 <code class="language-python" id="code">
