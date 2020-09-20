@@ -138,7 +138,7 @@ mse_loss_s = "def mse_loss(y_true, y_pred):\n\treturn ((y_true - y_pred) ** 2).m
 class Neuron:
     def __init__(self, number_of_weights, activation="sigmoid"):
         self.number_of_weights = number_of_weights
-        self.input_vec = 0
+        self.input_vec = np.array([])
         self.activation_val = 0
         self.weights = np.random.rand(number_of_weights)
         self.biases = np.random.rand()
@@ -158,9 +158,6 @@ class Neuron:
     def get_weight(self, index):
         return self.weights[index]
 
-    def get_weights(self):
-        return self.weights
-
     def set_weight(self, index, value):
         self.weights[index] = value
 
@@ -169,14 +166,13 @@ class Neuron:
         # pred = node.sigmoid_val
         self.bias_partial = deriv
         self.weight_partials = np.array(self.input_vec) * deriv
-        self.node_partials = self.get_weights() * deriv
+        self.node_partials = self.weights * deriv
         return
 
 class Layer:
     def __init__(self, num_nodes):
         self.num_nodes = num_nodes
         self.nodes = []
-        self.output_vec = None
         self.errors_vec = None
 
     def get_num_nodes(self):
@@ -202,6 +198,18 @@ class Layer:
             node.backprop_node(deriv)
         return
 
+    def layer_error(self, layer_in_front):
+        errors = np.array([])
+        for i in range(0, self.num_nodes):
+            weights = np.array([])
+            for node in layer_in_front.nodes:
+                weights = np.append(weights, node.weights[i])
+            errors = np.append(errors, np.dot(weights, layer_in_front.errors_vec))
+        self.errors_vec = errors
+        return
+
+
+
 
 class NeuralNetwork:
     def __init__(self, layers):
@@ -214,13 +222,11 @@ class NeuralNetwork:
         output_vec = self.layers[1].feedforward_layer(input_vec)
         for layerIdx in range(2, len(self.layers)):
             output_vec = self.layers[layerIdx].feedforward_layer(output_vec)
-        self.output_vec = output_vec
+        return output_vec
 
 
-   # def layer_error(self, layer):
-        #for i in range()
 
-    def update_node_weights(self, node, node_number, layer_number):
+    def update_node_weights(self, node, node_number, layer_number, layer_in_front=0):
         # node.weights -= self.d_l_dy_pred * node.node_partials * node.weight_partials
         inputs = node.input_vec
         # FIXME
@@ -234,24 +240,43 @@ class NeuralNetwork:
             delta_w = self.error[node_number] * inputs * derivatives
             node.weights += delta_w
         else:
-            pass
+            # dot product of derivatives of the output weights and the output errors
+            scalars = np.array([])
+            for i in range(0, self.layers[layer_number].num_nodes):
+                weight_deriv = np.array([])
+                for node in layer_in_front.nodes:
+                    weight_deriv = np.append(weight_deriv, sigmoid_prime(node.weights[i]))
+                scalars = np.append(scalars, np.dot(weight_deriv, layer_in_front.errors_vec))
+            # derivatives of inputs * inputs * correct scalar = delta_w
+            #print('inputs', type(inputs))
+            #print('partials', type(node.node_partials))
+            #print('scalars', type(scalars[node_number]))
+            delta_w = node.input_vec * node.node_partials * scalars[node_number]
+            node.weights += delta_w
+        return
 
 
     # where all the weights get updated
     def backprop_network(self, data, true, learn_rate, cycles):
         # self.d_l_dy_pred = -2 * (true - self.output_vec) # size 3
-        #self.layers[-1].error_vec = self.error
         for i in range(0, cycles):
-            self.feedforward_network(data)
-            self.error = true - self.output_vec
-            print(self.error)
             # self.learning_multiplier = learn_rate * self.d_l_dy_pred
+            self.error = true - self.feedforward_network(data)
+            self.layers[-1].errors_vec = self.error
+            print(self.error)
             for layerIdx in range(len(self.layers) - 1, 0, -1):
                 current_layer = self.layers[layerIdx]
+                if layerIdx <= len(self.layers) - 2:
+                    current_layer.layer_error(self.layers[layerIdx + 1])
                 current_layer.backprop_layer()
                 for nodeIdx in range(0, current_layer.get_num_nodes()):  # output: loops 012 # next in: loops 0123
-                    self.update_node_weights(current_layer.nodes[nodeIdx], nodeIdx,
-                                             layerIdx)  # this works only for output layer
+                    if layerIdx <= len(self.layers) - 2:
+                        current_layer.layer_error(self.layers[layerIdx + 1])
+                        self.update_node_weights(current_layer.nodes[nodeIdx], nodeIdx,
+                                             layerIdx, self.layers[layerIdx + 1])
+                    else:
+                        self.update_node_weights(current_layer.nodes[nodeIdx], nodeIdx,
+                                                 layerIdx)
 
 
 def create_layers(inputs, outputs, nodes_per_layer):
@@ -275,13 +300,14 @@ def network(inputs, outputs, nodes_per_layer, activation):
     create_nodes(layers, activation)
     network = NeuralNetwork(layers)
     #network.feedforward_network(np.array([-3.0, -3.0]))
-    data = np.array([-3.2, 3.1])
-    true = np.array([.321, .512])
+    data = np.array([-5.2, 3.1, 3.2, 6])
+    true = np.array([.76, .311, .122])
     learn_rate = 0.1
     cycles = 1000
     network.backprop_network(data, true, learn_rate, cycles)
-    print(network.output_vec)
+    print(network.feedforward_network(data))
+
 
 
 # network(inputs=3, outputs=1, nodes_per_layer=(2,), activation="sigmoid")
-network(inputs=2, outputs=2, nodes_per_layer=(2, 3), activation="sigmoid")
+network(inputs=4, outputs=3, nodes_per_layer=(3, 5, 2, 4, 3), activation="sigmoid")
