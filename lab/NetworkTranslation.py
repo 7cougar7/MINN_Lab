@@ -262,9 +262,12 @@ class NeuralNetwork:
             for data, true in zip(dataset, true_set):
                 self.backprop_network(data, true)
 
+
 """
 This is a comment
 """
+
+
 def create_layers(inputs, outputs, nodes_per_layer):
     layers = [Layer(inputs)]
     for i in range(0, len(nodes_per_layer)):
@@ -281,42 +284,82 @@ def create_nodes(layers):
             layer.append_node(Neuron(layers[layerIdx - 1].get_num_nodes()))
 
 
-def network(inputs, outputs, nodes_per_layer):
+def create_network(inputs, outputs, nodes_per_layer):
     layers = create_layers(inputs, outputs, nodes_per_layer)
     create_nodes(layers)
-    network = NeuralNetwork(layers)
+    return NeuralNetwork(layers)
     # network.feedforward_network(np.array([-3.0, -3.0]))
-    data = np.array([-5.2, 3.1, 3.2, 6])
-    true = np.array([.76, .311, .122])
-    learn_rate = 0.1
-    cycles = 1000
+    # data = np.array([-5.2, 3.1, 3.2, 6])
+    # true = np.array([.76, .311, .122])
+    # learn_rate = 0.1
+    # cycles = 1000
     # network.backprop_network(data, true, learn_rate, cycles)
     # print(network.feedforward_network(data))
 
     # Define dataset
-    data = np.array([
-        [-2, -1],  # Alice
-        [25, 6],  # Bob
-        [17, 4],  # Charlie
-        [-15, -6],  # Diana
-    ])
-    all_y_trues = np.array([
-        np.array([1, 1]),  # Alice
-        np.array([0, 0]),  # Bob
-        np.array([0, 0]),  # Charlie
-        np.array([1, 1]),  # Diana
-    ])
+    # data = np.array([
+    #     [-2, -1],  # Alice
+    #     [25, 6],  # Bob
+    #     [17, 4],  # Charlie
+    #     [-15, -6],  # Diana
+    # ])
+    # all_y_trues = np.array([
+    #     np.array([1, 1]),  # Alice
+    #     np.array([0, 0]),  # Bob
+    #     np.array([0, 0]),  # Charlie
+    #     np.array([1, 1]),  # Diana
+    # ])
+    #
+    # emily = np.array([-7, -3])  # 128 pounds, 63 inches
+    # frank = np.array([20, 2])  # 155 pounds, 68 inches
+    #
+    # print("Emily:", network.feedforward_network(emily))  # 0.951 - F
+    # print("Frank:", network.feedforward_network(frank))  # 0.039 - M
+    # network.train(data, all_y_trues, 25000)
+    #
+    # print("Emily:", network.feedforward_network(emily))  # 0.951 - F
+    # print("Frank:", network.feedforward_network(frank))  # 0.039 - M
 
-    emily = np.array([-7, -3])  # 128 pounds, 63 inches
-    frank = np.array([20, 2])  # 155 pounds, 68 inches
-
-    print("Emily:", network.feedforward_network(emily))  # 0.951 - F
-    print("Frank:", network.feedforward_network(frank))  # 0.039 - M
-    network.train(data, all_y_trues, 25000)
-
-    print("Emily:", network.feedforward_network(emily))  # 0.951 - F
-    print("Frank:", network.feedforward_network(frank))  # 0.039 - M
+    # network(inputs=3, outputs=1, nodes_per_layer=(2,), activation="sigmoid")
+    # network(inputs=2, outputs=2, nodes_per_layer=(2,))
 
 
-# network(inputs=3, outputs=1, nodes_per_layer=(2,), activation="sigmoid")
-network(inputs=2, outputs=2, nodes_per_layer=(2,))
+def turn_node_to_string(layers):
+    master_string = ''
+    num_layers = len(layers)
+    class_list = []
+    output_list = []
+    for layerIdx in range(0, num_layers - 1):
+        layer = layers[layerIdx]
+        this_list = []
+        for i in range(0, layer.num_nodes):
+            master_string += '~~~~'
+            name_of_node = "self.L" + str(layerIdx) + "n" + str(i)
+            this_list.append(name_of_node)
+            name_of_node += " = Neuron(" + "number_of_weights=" + str(layers[layerIdx - 1].num_nodes) + ""
+            name_of_node += ")"
+            master_string += name_of_node + '\n'
+        class_list.append(this_list)
+        master_string += '\n'
+    for i in range(0, layers[-1].num_nodes):
+        master_string += '~~~~'
+        name_of_node = "self.On" + str(i)
+        output_list.append(name_of_node)
+        name_of_node += " = Neuron(" + "number_of_weights=" + str(layers[-2].num_nodes) + ")"
+        master_string += name_of_node + '\n'
+    master_string += '\n'
+    for layerIdx in range(0, num_layers - 1):
+        master_string += "~~~~layer" + str(layerIdx) + " = Layer(num_nodes=" + str(layers[layerIdx].num_nodes) + ")\n"
+        master_string += "~~~~layer" + str(layerIdx) + ".nodes = ["
+        for j in range(0, len(class_list[layerIdx]) - 1):
+            master_string += class_list[layerIdx][j] + ", "
+        master_string += class_list[layerIdx][-1] + "]\n\n"
+    master_string += "~~~~output = Layer(num_nodes=" + str(layers[-1].num_nodes) + ")\n"
+    master_string += "~~~~output.nodes = ["
+    if len(output_list) != 1:
+        for o in range(0, len(output_list)):
+            master_string += output_list[o] + ", "
+        master_string += output_list[-1] + "]\n"
+    else:
+        master_string += output_list[-1] + "]\n"
+    return master_string

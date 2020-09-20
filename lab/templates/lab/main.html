@@ -23,12 +23,19 @@
                 outputVal = MAX_INPUTS_OUTPUTS;
                 outputElement.val(MAX_INPUTS_OUTPUTS)
             }
+
+            let nodesPerLayer = []
+            $('input[name="nodeLayerNum[]"]').each(function() {
+                nodesPerLayer.push(Number.isInteger(parseInt($(this).val())) ? parseInt($(this).val()) : 2 )
+            });
+
             $.post({
                     url: '{% url 'lab:post_scipt' %}', //TODO Change this URL
                     data: {
                         inputVal: Number.isInteger(inputVal) ? inputVal : 1,
                         outputVal: Number.isInteger(outputVal) ? outputVal : 1,
                         funcVal: $('#activationSelect').val(),
+                        numNodesPerLayer: nodesPerLayer,
                         csrfmiddlewaretoken: '{{ csrf_token }}',
                     },
                     async: false,
@@ -52,7 +59,7 @@
             }
             let elements = '';
             for (let i = 1; i < numLayers + 1; i++) {
-                elements += '<li class="pl-10 pr-7 py-2"><label for="numOutputs">Number of Nodes for Layer ' + i + ':</label><input type="number" id="numLayers' + i + '" name="numLayers" placeholder="2" min="1" max="5"></li>'
+                elements += '<li class="pl-10 pr-7 py-2"><label for="numLayers' + i + '">Number of Nodes for Layer ' + i + ':</label><input type="number" id="numLayers' + i + '" name="nodeLayerNum[]" placeholder="2" min="1" max="5"></li>'
             }
             $('#nodesPerLayer').html(elements);
         }

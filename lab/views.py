@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from lab.NetworkTranslation import create_network, turn_node_to_string
 import re
 
 INDENTION = '    '
@@ -60,14 +61,14 @@ def function_type(func_val):
     deriv_function_inputs = ['node.sum_val', 'input', 'node.weights[i]']
 
     functions = {
-        '0': 'def sigmoid(x):\n~return 1 / (1 + np.exp(-x))\n\ndef sigmoid_prime(x):\n~tfx = sigmoid(x)\n~return fx * (1 - fx)\n',
-        '1': 'def tanh(x):\n~return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))\n\ndef tanh_prime(x):\n~t = tanh(x)\n~return 1 - t ** 2\n',
-        '2': 'def relu(x):\n~return max(0, x)\n\ndef relu_prime(x):\n~return 1 if x > 0 else 0\n',
-        '3': 'def parametric_relu(x, alpha=0.01):\n~return max(alpha * x, x)\n\ndef parametric_relu_prime(x, alpha=0.01):\n~return 1 if x > 0 else alpha\n',
-        '4': 'def elu(x, alpha):\n~return x if x >= 0 else alpha * (np.exp(x) - 1)\n\ndef elu_prime(x, alpha):\n~return 1 if x > 0 else alpha * np.exp(x)\n',
-        '5': 'def swish(x):\n~return x / (1 + np.exp(-x))\n\ndef swish_prime(x):\n~sig = sigmoid(x)\n~swi = swish(x)\n~return swi + (sig * (1 - swi))\n',
-        '6': 'def linear(x, slope):\n~return x * slope\n\ndef linear_prime(slope):\n~return slope\n',
-        '7': 'def binary(x):\n~return 1 if x > 0 else 0\n\ndef binary_prime():\n~return 0\n'
+        '0': '~~def sigmoid(x):\n~~~return 1 / (1 + np.exp(-x))\n\n~~def sigmoid_prime(x):\n~~~tfx = sigmoid(x)\n~~~return fx * (1 - fx)\n',
+        '1': '~~def tanh(x):\n~~~return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))\n\n~~def tanh_prime(x):\n~~~t = tanh(x)\n~~~return 1 - t ** 2\n',
+        '2': '~~def relu(x):\n~~~return max(0, x)\n\n~~def relu_prime(x):\n~~~return 1 if x > 0 else 0\n',
+        '3': '~~def parametric_relu(x, alpha=0.01):\n~~~return max(alpha * x, x)\n\n~~def parametric_relu_prime(x, alpha=0.01):\n~~~return 1 if x > 0 else alpha\n',
+        '4': '~~def elu(x, alpha):\n~~~return x if x >= 0 else alpha * (np.exp(x) - 1)\n\n~~def elu_prime(x, alpha):\n~~~return 1 if x > 0 else alpha * np.exp(x)\n',
+        '5': '~~def swish(x):\n~~~return x / (1 + np.exp(-x))\n\n~~def swish_prime(x):\n~~~sig = sigmoid(x)\n~~~swi = swish(x)\n~~~return swi + (sig * (1 - swi))\n',
+        '6': '~~def linear(x, slope):\n~~~return x * slope\n\n~~def linear_prime(slope):\n~~~return slope\n',
+        '7': '~~def binary(x):\n~~~return 1 if x > 0 else 0\n\n~~def binary_prime():\n~~~return 0\n'
     }
 
     function_call = {
@@ -133,7 +134,12 @@ def post_number_outputs(request):
 def post_script(request):
     if request.POST:
         functions = function_type(request.POST.get('funcVal', '0'))
-        nn_code = r"""
+        network = create_network(
+            inputs=int(request.POST.get('inputVal', '1')),
+            outputs=int(request.POST.get('outputVal', '1')),
+            nodes_per_layer=[int(num_string) for num_string in request.POST.getlist('numNodesPerLayer[]', ['2'])]
+        )
+        nn_code = r'' + functions['function_def'] + """
         class Neuron:
             def __init__(self, number_of_weights):
                 self.number_of_weights = number_of_weights
@@ -145,13 +151,14 @@ def post_script(request):
                 self.weight_partials = None
                 self.node_partials = None
                 self.bias_partial = None
+                self.activation_func_val
 
             def feedforward(self, inputs):
                 # Weight inputs, add bias, and use activation function
                 self.input_vec = inputs
                 self.sum_val = np.dot(self.weights, inputs) + self.biases
-                self.sigmoid_val = """ + functions['function_calls'][0] + """
-                return self.sigmoid_val
+                self.activation_func_val = """ + functions['function_calls'][0] + """
+                return self.activation_func_val
 
             def get_weight(self, index):
                 return self.weights[index]
@@ -204,6 +211,7 @@ def post_script(request):
 
         class NeuralNetwork:
             def __init__(self, layers):
+""" + format_string(turn_node_to_string(network.layers)) + """
                 self.layers = layers
                 self.output_vec = np.array([])
 
